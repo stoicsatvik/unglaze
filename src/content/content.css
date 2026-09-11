@@ -1,0 +1,136 @@
+.unglaze-root {
+  box-sizing: border-box;
+  width: 100%;
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: inherit;
+}
+
+.unglaze-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 6px 10px;
+}
+
+.unglaze-button {
+  appearance: none;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  border-radius: 999px;
+  padding: 6px 11px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  color: inherit;
+  background: rgba(127, 127, 127, 0.08);
+}
+
+.unglaze-button:hover {
+  background: rgba(127, 127, 127, 0.16);
+}
+
+.unglaze-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.unglaze-card {
+  margin: 0 10px 10px;
+  padding: 12px;
+  border: 1px solid rgba(127, 127, 127, 0.24);
+  border-radius: 12px;
+  background: color-mix(in srgb, Canvas 96%, currentColor 4%);
+  color: CanvasText;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+}
+
+.unglaze-card[hidden] {
+  display: none !important;
+}
+
+.unglaze-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.unglaze-card-title {
+  display: block;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.unglaze-author {
+  display: block;
+  margin-top: 2px;
+  opacity: 0.65;
+  font-size: 11px;
+}
+
+.unglaze-badge {
+  flex: 0 0 auto;
+  border: 1px solid rgba(127, 127, 127, 0.28);
+  border-radius: 999px;
+  padding: 3px 6px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.unglaze-caveat,
+.unglaze-muted {
+  margin: 0;
+  opacity: 0.64;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.unglaze-section {
+  margin-top: 12px;
+}
+
+.unglaze-section-title {
+  margin: 0 0 5px;
+  font-size: 11px;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.72;
+}
+
+.unglaze-summary {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.unglaze-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.unglaze-list-item {
+  margin: 4px 0;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.unglaze-link {
+  color: LinkText;
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+
+.unglaze-error {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+@media (prefers-color-scheme: dark) {
+  .unglaze-card {
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.24);
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Unglaze",
+  "version": "0.1.0",
+  "description": "Turn noisy social feeds into claims, facts, evidence and missing context.",
+  "permissions": ["storage", "activeTab"],
+  "action": {
+    "default_title": "Unglaze",
+    "default_popup": "src/popup/popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.linkedin.com/*",
+        "https://linkedin.com/*",
+        "https://x.com/*",
+        "https://twitter.com/*",
+        "https://www.reddit.com/*",
+        "https://reddit.com/*",
+        "https://www.facebook.com/*",
+        "https://facebook.com/*"
+      ],
+      "js": [
+        "src/core/engine.js",
+        "src/platforms/adapters.js",
+        "src/content/content.js"
+      ],
+      "css": ["src/content/content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

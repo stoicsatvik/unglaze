@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Unglaze</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>Unglaze</h1>
+          <p>Turn narratives into information.</p>
+        </div>
+        <span class="version">v0.1</span>
+      </header>
+
+      <section class="panel">
+        <div class="row">
+          <div>
+            <strong id="site-name">Current site</strong>
+            <span id="site-status">Detecting…</span>
+          </div>
+          <label class="switch" aria-label="Enable Unglaze on this site">
+            <input id="site-toggle" type="checkbox" />
+            <span></span>
+          </label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <label for="mode">View mode</label>
+        <select id="mode">
+          <option value="balanced">Balanced</option>
+          <option value="facts">Facts only</option>
+          <option value="numbers">Numbers only</option>
+        </select>
+        <p class="hint">Analysis runs locally in the extension in v0.1.</p>
+      </section>
+
+      <footer>No auto-posting. No fake verification. No ceremonial LinkedIn fog.</footer>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

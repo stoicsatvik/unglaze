@@ -1,0 +1,10 @@
+{
+  "name": "unglaze",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first social-feed signal layer.",
+  "scripts": {
+    "check": "node --check src/core/engine.js && node --check src/platforms/adapters.js && node --check src/content/content.js && node --check src/popup/popup.js",
+    "test": "npm run check && node tests/engine.test.mjs"
+  }
+}

@@ -1,0 +1,130 @@
+:root {
+  color-scheme: light dark;
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: Canvas;
+  color: CanvasText;
+}
+
+main {
+  padding: 16px;
+}
+
+header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.15;
+}
+
+header p,
+footer,
+.hint,
+#site-status {
+  margin: 4px 0 0;
+  opacity: 0.62;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.version {
+  border: 1px solid rgba(127, 127, 127, 0.3);
+  border-radius: 999px;
+  padding: 3px 6px;
+  font-size: 10px;
+}
+
+.panel {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid rgba(127, 127, 127, 0.25);
+  border-radius: 12px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+strong,
+label {
+  display: block;
+  font-size: 12px;
+}
+
+select {
+  width: 100%;
+  margin-top: 7px;
+  padding: 8px 9px;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  border-radius: 8px;
+  background: Canvas;
+  color: CanvasText;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch span {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: rgba(127, 127, 127, 0.35);
+  cursor: pointer;
+}
+
+.switch span::before {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  left: 3px;
+  top: 3px;
+  border-radius: 50%;
+  background: Canvas;
+  transition: transform 120ms ease;
+}
+
+.switch input:checked + span {
+  background: Highlight;
+}
+
+.switch input:checked + span::before {
+  transform: translateX(16px);
+}
+
+.switch input:disabled + span {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+footer {
+  margin-top: 14px;
+}
