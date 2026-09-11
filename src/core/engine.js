@@ -71,6 +71,7 @@
     result = result
       .replace(/^(after|following)\s+(months?|years?)\s+of\s+[^,]+,\s*/i, "")
       .replace(/^i(?:'m| am)\s+/i, "")
+      .replace(/^that\s+/i, "")
       .trim();
     return result || sentence;
   };
@@ -89,9 +90,14 @@
 
   const unique = (items) => [...new Set(items.filter(Boolean))];
 
+  const hasPercentageBaseline = (text) =>
+    /baseline|previous|prior/i.test(text) ||
+    /\bfrom\b\s+[^.!?]{0,40}\bto\b/i.test(text) ||
+    /\b(?:from|to)\s+[$₹€£]?\s*\d/i.test(text);
+
   const inferMissingContext = (text) => {
     const missing = [];
-    if (/\b\d+(?:\.\d+)?%\b/.test(text) && !/\bfrom\b|\bto\b|baseline|previous|prior/i.test(text)) {
+    if (/\b\d+(?:\.\d+)?%/.test(text) && !hasPercentageBaseline(text)) {
       missing.push("Percentage change is given without a clear baseline.");
     }
     if (/\b(?:users?|customers?)\b/i.test(text) && !/active|paying|registered|monthly|daily|retained/i.test(text)) {
