@@ -4,10 +4,7 @@ await import("../src/core/engine.js");
 
 const { analyze, stripGlaze, inferMissingContext } = globalThis.UnglazeCore;
 
-assert.equal(
-  stripGlaze("Thrilled to announce we raised $1.2M in seed funding."),
-  "we raised $1.2M in seed funding."
-);
+assert.equal(stripGlaze("Thrilled to announce we raised $1.2M in seed funding."), "we raised $1.2M in seed funding.");
 
 const result = analyze({
   text: "Thrilled to announce that we grew 200%! We now have 10,000 users. I think this is the best product in the market.",
@@ -21,6 +18,16 @@ assert.ok(result.missingContext.includes("Percentage change is given without a c
 assert.ok(result.missingContext.includes("User/customer metric is not clearly defined."));
 assert.ok(result.evidenceLinks.includes("https://example.com/report"));
 assert.ok(result.opinions.length >= 1);
+
+for (const claim of result.claims) {
+  assert.equal(claim.status, "self_reported");
+  assert.equal(claim.basis, "post_text");
+  assert.equal(claim.verification, "unverified");
+  assert.equal("confidence" in claim, false, "local heuristics must not fabricate numeric confidence");
+}
+
+const linked = analyze({ text: "We reached 5,000 users.", links: ["https://example.com/report"] });
+assert.equal(linked.claims[0].verification, "unverified", "a linked URL must not automatically verify a claim");
 
 const gaps = inferMissingContext("Revenue grew 50%.");
 assert.ok(gaps.includes("Percentage change is given without a clear baseline."));
