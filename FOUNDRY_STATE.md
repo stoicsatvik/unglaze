@@ -1,6 +1,6 @@
 # Foundry state
 
-Claim state: NOT YET PROVEN
+Claim state: SUPPORTED
 
 Current branch: `foundry/canonical-analysis-contract`
 
@@ -14,10 +14,13 @@ Trust invariants:
 - non-http(s) links are rejected from the evidence boundary.
 
 ## Validation
-Pending exact-head CI for canonical contract tests.
+Validated implementation head: `c0721aea5527f277b7b5cc0d95bc4712264f4793`.
+GitHub Actions CI run `35461460962` completed successfully; job `test` ran `npm test` successfully.
+
+This supports the canonical analysis/provenance software contract only. It does not establish factual verification accuracy, real-world DOM robustness, user adoption, or cross-platform contradiction detection.
 
 ## Highest-EV next action
-After exact-head CI is green, add deterministic platform-adapter fixtures that prove LinkedIn/X/Reddit/Facebook normalize into this contract without platform-specific semantics leaking into the core engine.
+Add deterministic platform-adapter fixtures that prove LinkedIn/X/Reddit/Facebook normalize into this contract without platform-specific semantics leaking into the core engine.
 
 ## Not proven
 Real-world DOM robustness, factual verification accuracy, contradiction detection, user usefulness, adoption and cross-platform claim-graph value.
