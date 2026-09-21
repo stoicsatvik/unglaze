@@ -14,8 +14,8 @@ Trust invariants:
 - non-http(s) links are rejected from the evidence boundary.
 
 ## Validation
-Validated implementation head: `c0721aea5527f277b7b5cc0d95bc4712264f4793`.
-GitHub Actions CI run `35461460962` completed successfully; job `test` ran `npm test` successfully.
+Validated implementation head: `a38b671c19403590f0555ccb3e20a55d6b8b7271`.
+GitHub Actions CI run `35526005029` completed successfully; job `test` ran `npm test` successfully.
 
 This supports the canonical analysis/provenance software contract only. It does not establish factual verification accuracy, real-world DOM robustness, user adoption, or cross-platform contradiction detection.
 
