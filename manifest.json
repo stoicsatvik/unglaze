@@ -22,6 +22,7 @@
       ],
       "js": [
         "src/core/engine.js",
+        "src/platforms/contract.js",
         "src/platforms/adapters.js",
         "src/content/content.js"
       ],
