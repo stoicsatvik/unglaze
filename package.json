@@ -4,7 +4,7 @@
   "private": true,
   "description": "Local-first social-feed signal layer.",
   "scripts": {
-    "check": "node --check src/core/engine.js && node --check src/platforms/adapters.js && node --check src/content/content.js && node --check src/popup/popup.js",
-    "test": "npm run check && node tests/engine.test.mjs"
+    "check": "node --check src/core/engine.js && node --check src/platforms/contract.js && node --check src/platforms/adapters.js && node --check src/content/content.js && node --check src/popup/popup.js",
+    "test": "npm run check && node tests/engine.test.mjs && node tests/platform-contract.test.mjs"
   }
 }
