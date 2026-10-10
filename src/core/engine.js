@@ -80,7 +80,7 @@
   const isPrediction = (sentence) => predictionPatterns.some((pattern) => pattern.test(sentence));
 
   const looksFactual = (sentence) => {
-    if (isOpinion(sentence)) return false;
+    if (isOpinion(sentence) || isPrediction(sentence)) return false;
     return (
       numberDetector.test(sentence) ||
       monthPattern.test(sentence) ||
@@ -90,14 +90,15 @@
 
   const unique = (items) => [...new Set(items.filter(Boolean))];
 
-  const hasPercentageBaseline = (text) =>
-    /baseline|previous|prior/i.test(text) ||
-    /\bfrom\b\s+[^.!?]{0,40}\bto\b/i.test(text) ||
-    /\b(?:from|to)\s+[$₹€£]?\s*\d/i.test(text);
+  // Baselines must belong to the percentage claim, not an unrelated sentence.
+  const hasPercentageBaseline = (sentence) =>
+    /\bfrom\s+[^.!?]{0,25}\d[^.!?]{0,40}\bto\s+[^.!?]{0,25}\d/i.test(sentence) ||
+    /\b(?:previous|prior|baseline)\s+(?:value|count|revenue|total|number|figure)?\s*(?:was|of|:|=)?\s*[$₹€£]?\s*\d/i.test(sentence) ||
+    /\b(?:compared\s+(?:with|to)|versus|vs\.?)\s+[$₹€£]?\s*\d/i.test(sentence);
 
   const inferMissingContext = (text) => {
     const missing = [];
-    if (/\b\d+(?:\.\d+)?%/.test(text) && !hasPercentageBaseline(text)) {
+    if (splitSentences(text).some((sentence) => /\b\d+(?:\.\d+)?%/.test(sentence) && !hasPercentageBaseline(sentence))) {
       missing.push("Percentage change is given without a clear baseline.");
     }
     if (/\b(?:users?|customers?)\b/i.test(text) && !/active|paying|registered|monthly|daily|retained/i.test(text)) {
@@ -142,11 +143,10 @@
     const predictions = sentences.filter(isPrediction);
     const factualClaims = sentences.filter(looksFactual);
     const claims = sentences
-      .filter((sentence) => !opinions.includes(sentence))
+      .filter(looksFactual)
       .map((sentence) => ({
         text: stripGlaze(sentence),
-        status: "self_reported",
-        confidence: looksFactual(sentence) ? 0.72 : 0.55
+        status: "self_reported"
       }))
       .filter((claim) => claim.text.length > 3)
       .slice(0, 12);
