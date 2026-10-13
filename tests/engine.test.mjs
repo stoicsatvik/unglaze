@@ -25,4 +25,7 @@ const empty = analyze();
 assert.equal(empty.platform, "unknown");
 assert.equal(empty.content, "");
 assert.deepEqual(empty.evidence, []);
+assert.deepEqual(globalThis.UnglazeCore.splitSentences("We raised $1.2M in seed funding. We hired 12 people."), ["We raised $1.2M in seed funding.", "We hired 12 people."]);
+assert.deepEqual(globalThis.UnglazeCore.splitSentences("Revenue grew 12.5% in 2025. It rose again."), ["Revenue grew 12.5% in 2025.", "It rose again."]);
+assert.deepEqual(globalThis.UnglazeCore.splitSentences("See https://example.com/report. We published 3 reports."), ["See https://example.com/report.", "We published 3 reports."]);
 console.log("Unglaze engine tests passed.");
