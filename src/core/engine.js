@@ -18,8 +18,14 @@
   const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const stripGlaze = (sentence) => { let result = normalizeWhitespace(sentence); for (const term of glazeTerms) result = result.replace(new RegExp(`\\b${escapeRegExp(term)}\\b[:,;!]?\\s*`, "ig"), ""); result = result.replace(/^(after|following)\s+(months?|years?)\s+of\s+[^,]+,\s*/i, "").replace(/^i(?:'m| am)\s+/i, "").replace(/^that\s+/i, "").trim(); return result || sentence; };
   const isOpinion = (sentence) => opinionPatterns.some((pattern) => pattern.test(sentence));
-  const isPrediction = (sentence) => predictionPatterns.some((pattern) => pattern.test(sentence));
-  const looksFactual = (sentence) => !isOpinion(sentence) && (numberDetector.test(sentence) || monthPattern.test(sentence) || /\b(?:launched|raised|acquired|released|joined|founded|built|hired|opened|closed|grew|reached|shipped|published|won|lost|signed|sold|generated|revenue|users?|customers?|funding|employees?)\b/i.test(sentence));
+  const isPrediction = (sentence) => {
+    // "May" is both a modal verb and a month. Calendar mentions are not forecasts.
+    const withoutCalendarMay = sentence
+      .replace(/\bMay\s+(?=\d{4}\b|\d{1,2}(?:st|nd|rd|th)?\b|release\b|update\b|report\b|results?\b|edition\b|revenue\b|sales\b)/g, "")
+      .replace(/\b(?:in|during|since|by|until|through|after|before|for)\s+May\b/gi, "");
+    return predictionPatterns.some((pattern) => pattern.test(withoutCalendarMay));
+  };
+  const looksFactual = (sentence) => !isOpinion(sentence) && !isPrediction(sentence) && (numberDetector.test(sentence) || monthPattern.test(sentence) || /\b(?:launched|raised|acquired|released|joined|founded|built|hired|opened|closed|grew|reached|shipped|published|won|lost|signed|sold|generated|revenue|users?|customers?|funding|employees?)\b/i.test(sentence));
   const unique = (items) => [...new Set(items.filter(Boolean))];
   const hasPercentageBaseline = (text) => /baseline|previous|prior/i.test(text) || /\bfrom\b\s+[^.!?]{0,40}\bto\b/i.test(text) || /\b(?:from|to)\s+[$₹€£]?\s*\d/i.test(text);
   const inferMissingContext = (text) => { const missing = []; if (/\b\d+(?:\.\d+)?%/.test(text) && !hasPercentageBaseline(text)) missing.push("Percentage change is given without a clear baseline."); if (/\b(?:users?|customers?)\b/i.test(text) && !/active|paying|registered|monthly|daily|retained/i.test(text)) missing.push("User/customer metric is not clearly defined."); if (/\brevenue\b/i.test(text) && !/[$₹€£]|crore|lakh|million|billion|\bk\b|\bm\b/i.test(text)) missing.push("Revenue is mentioned without an absolute amount."); if (/\b(?:raised|funding|round)\b/i.test(text) && !/seed|series|pre-seed|debt|grant|valuation|lead investor/i.test(text)) missing.push("Funding claim omits round structure or investor context."); if (/\b(?:grew|growth|increase|increased|up)\b/i.test(text) && !/\b(?:month|quarter|year|week|day|yoy|mom|qoq)\b/i.test(text)) missing.push("Growth claim does not specify a time window."); return unique(missing); };
