@@ -25,4 +25,32 @@ const empty = analyze();
 assert.equal(empty.platform, "unknown");
 assert.equal(empty.content, "");
 assert.deepEqual(empty.evidence, []);
+const crossClaimBaselineFixtures = [
+  "Previous quarterly results are archived. Revenue grew 20%.",
+  "Our baseline dataset has three tables. Signups increased 30%.",
+  "Previous teams shipped a redesign. Retention grew 8%.",
+  "Revenue grew 12%. Previously we sold furniture.",
+  "Revenue rose 20%! Prior estimates were inaccurate.",
+  "From 5 to 8 stores, we expanded. Revenue grew 50%.",
+  "Revenue rose 25%. The prior quarter's baseline was $10M.",
+  "Customers grew 7%. The word baseline is mentioned elsewhere."
+];
+for (const fixture of crossClaimBaselineFixtures) {
+  assert.ok(
+    inferMissingContext(fixture).includes("Percentage change is given without a clear baseline."),
+    `Unrelated context must not suppress a percentage warning: ${fixture}`
+  );
+}
+const sameClaimBaselineFixtures = [
+  "Revenue grew 20% from $10M to $12M.",
+  "Users grew 25% from 100 to 125.",
+  "Revenue increased 50% compared to previous $2M.",
+  "Revenue grew 30% over prior 1,000 units."
+];
+for (const fixture of sameClaimBaselineFixtures) {
+  assert.ok(
+    !inferMissingContext(fixture).includes("Percentage change is given without a clear baseline."),
+    `Explicit same-sentence baseline should be retained: ${fixture}`
+  );
+}
 console.log("Unglaze engine tests passed.");
