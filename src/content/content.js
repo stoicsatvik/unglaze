@@ -15,6 +15,25 @@
 
   let settings = DEFAULTS;
   let scanTimer = null;
+  // SPA feeds recycle post elements. Keep the last observed source in extension memory,
+  // never in a data-* attribute readable by the host page.
+  const mounted = new WeakMap();
+
+  const resetAnalysis = (state) => {
+    state.card.hidden = true;
+    delete state.card.dataset.ready;
+    state.card.replaceChildren();
+    state.button.setAttribute("aria-expanded", "false");
+  };
+
+  const syncSource = (post, state) => {
+    const currentText = platform.getText(post);
+    if (currentText !== state.sourceText) {
+      state.sourceText = currentText;
+      resetAnalysis(state);
+    }
+    return currentText;
+  };
 
   const readSettings = async () => {
     const stored = await chrome.storage.sync.get(["mode", "sites"]);
@@ -126,8 +145,19 @@
   };
 
   const mountPost = (post) => {
-    if (post.dataset.unglazeMounted === "1") return;
+    const previous = mounted.get(post);
+    if (previous && post.contains(previous.root)) {
+      const currentText = syncSource(post, previous);
+      if (!currentText || currentText.length < 12) {
+        previous.root.remove();
+        delete post.dataset.unglazeMounted;
+        mounted.delete(post);
+      }
+      return;
+    }
 
+    // A host-page rerender can remove our control without clearing its marker.
+    delete post.dataset.unglazeMounted;
     const text = platform.getText(post);
     if (!text || text.length < 12) return;
 
@@ -142,7 +172,14 @@
     const card = el("div", "unglaze-card");
     card.hidden = true;
 
+    const state = { root, button, card, sourceText: text };
     button.addEventListener("click", () => {
+      const currentText = syncSource(post, state);
+      if (!currentText || currentText.length < 12) {
+        resetAnalysis(state);
+        return;
+      }
+
       const opening = card.hidden;
       card.hidden = !opening;
       button.setAttribute("aria-expanded", String(opening));
@@ -151,7 +188,6 @@
         button.disabled = true;
         button.textContent = "Unglazing…";
         try {
-          const currentText = platform.getText(post);
           const links = platform.getLinks(post);
           const result = core.analyze({ text: currentText, links });
           renderAnalysis(card, result, {
@@ -173,6 +209,7 @@
     toolbar.append(button);
     root.append(toolbar, card);
     post.append(root);
+    mounted.set(post, state);
   };
 
   const clearMounted = () => {
