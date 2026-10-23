@@ -52,7 +52,7 @@
   const splitSentences = (text) => {
     const normalized = normalizeWhitespace(text);
     if (!normalized) return [];
-    const parts = normalized.match(/[^.!?\n]+(?:[.!?]+|$)/g) || [normalized];
+    const parts = normalized.split(/(?<=[.!?])\s+(?=\S)/);
     return parts.map(normalizeWhitespace).filter((part) => part.length > 2);
   };
 
