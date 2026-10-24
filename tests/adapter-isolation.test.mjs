@@ -41,6 +41,6 @@ assert.equal(sandbox.UnglazePlatform.getText(post), original);
 assert.ok(overlayRemoved, "injected overlay must be removed from fallback clone");
 assert.equal(sandbox.UnglazePlatform.getPosts().length, 1);
 const links = sandbox.UnglazePlatform.getLinks(post);
-assert.deepEqual(links.map((link) => link.href), ["https://nature.example/report"],
+assert.deepEqual(Array.from(links, (link) => link.href), ["https://nature.example/report"],
   "injected source links must never be attributed to the host post");
 console.log("Unglaze fallback source-isolation tests passed.");
