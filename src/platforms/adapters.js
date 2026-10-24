@@ -101,6 +101,9 @@
     const values = [];
     const seen = new Set();
     post.querySelectorAll("a[href]").forEach((anchor) => {
+      // Our rendered source links are not evidence supplied by the post author.
+      // Excluding them also keeps repeated analysis from feeding on itself.
+      if (anchor.closest?.(".unglaze-root")) return;
       try {
         const url = new URL(anchor.href, location.href);
         const href = url.href;
