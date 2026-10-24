@@ -85,7 +85,11 @@
 
     // Last-resort fallback. Keep it bounded so UI chrome and comment threads do not
     // accidentally become a novel disguised as one feed item.
-    return (post.innerText || "").trim().slice(0, 6000);
+    // Exclude our own overlay. Otherwise the second analysis of a recycled post
+    // can accidentally treat "Unglazed" UI labels as author-supplied evidence.
+    const clean = post.cloneNode(true);
+    clean.querySelectorAll(".unglaze-root").forEach((node) => node.remove());
+    return (clean.innerText || clean.textContent || "").trim().slice(0, 6000);
   };
 
   const getAuthor = (post) => {
@@ -97,6 +101,9 @@
     const values = [];
     const seen = new Set();
     post.querySelectorAll("a[href]").forEach((anchor) => {
+      // Our rendered source links are not evidence supplied by the post author.
+      // Excluding them also keeps repeated analysis from feeding on itself.
+      if (anchor.closest?.(".unglaze-root")) return;
       try {
         const url = new URL(anchor.href, location.href);
         const href = url.href;
