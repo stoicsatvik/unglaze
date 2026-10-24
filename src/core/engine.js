@@ -107,19 +107,19 @@
     // Evaluate evidence locally. An unrelated sentence must not "validate" a
     // percentage, user count, revenue figure, funding claim or growth window.
     for (const sentence of splitSentences(text)) {
-      if (/\\b\\d+(?:\\.\\d+)?%/.test(sentence) && !hasPercentageBaseline(sentence)) {
+      if (/\b\d+(?:\.\d+)?%/.test(sentence) && !hasPercentageBaseline(sentence)) {
         missing.push("Percentage change is given without a clear baseline.");
       }
-      if (/\\b(?:users?|customers?)\\b/i.test(sentence) && !/active|paying|registered|monthly|daily|retained/i.test(sentence)) {
+      if (/\b(?:users?|customers?)\b/i.test(sentence) && !/active|paying|registered|monthly|daily|retained/i.test(sentence)) {
         missing.push("User/customer metric is not clearly defined.");
       }
-      if (/\\brevenue\\b/i.test(sentence) && !/[$₹€£]|crore|lakh|million|billion|\\bk\\b|\\bm\\b/i.test(sentence)) {
+      if (/\brevenue\b/i.test(sentence) && !/[$₹€£]|crore|lakh|million|billion|\bk\b|\bm\b/i.test(sentence)) {
         missing.push("Revenue is mentioned without an absolute amount.");
       }
-      if (/\\b(?:raised|funding|round)\\b/i.test(sentence) && !/seed|series|pre-seed|debt|grant|valuation|lead investor/i.test(sentence)) {
+      if (/\b(?:raised|funding|round)\b/i.test(sentence) && !/seed|series|pre-seed|debt|grant|valuation|lead investor/i.test(sentence)) {
         missing.push("Funding claim omits round structure or investor context.");
       }
-      if (/\\b(?:grew|growth|increase|increased|up)\\b/i.test(sentence) && !/\\b(?:month|quarter|year|week|day|yoy|mom|qoq)\\b/i.test(sentence)) {
+      if (/\b(?:grew|growth|increase|increased|up)\b/i.test(sentence) && !/\b(?:month|quarter|year|week|day|yoy|mom|qoq)\b/i.test(sentence)) {
         missing.push("Growth claim does not specify a time window.");
       }
     }
