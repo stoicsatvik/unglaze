@@ -26,13 +26,25 @@
     state.button.setAttribute("aria-expanded", "false");
   };
 
+  const snapshotSource = (post) => {
+    const text = platform.getText(post);
+    const author = platform.getAuthor(post);
+    const links = platform.getLinks(post) || [];
+    // Recycled feed elements can change author or citations without changing text.
+    // Keep the complete source identity private to the extension, not in page attributes.
+    const signature = JSON.stringify([
+      text, author, links.map(({ href, text: label, external }) => [href, label, external])
+    ]);
+    return { text, author, links, signature };
+  };
+
   const syncSource = (post, state) => {
-    const currentText = platform.getText(post);
-    if (currentText !== state.sourceText) {
-      state.sourceText = currentText;
+    const current = snapshotSource(post);
+    if (current.signature !== state.source.signature) {
+      state.source = current;
       resetAnalysis(state);
     }
-    return currentText;
+    return current;
   };
 
   const readSettings = async () => {
@@ -147,8 +159,8 @@
   const mountPost = (post) => {
     const previous = mounted.get(post);
     if (previous && post.contains(previous.root)) {
-      const currentText = syncSource(post, previous);
-      if (!currentText || currentText.length < 12) {
+      const current = syncSource(post, previous);
+      if (!current.text || current.text.length < 12) {
         previous.root.remove();
         delete post.dataset.unglazeMounted;
         mounted.delete(post);
@@ -158,8 +170,8 @@
 
     // A host-page rerender can remove our control without clearing its marker.
     delete post.dataset.unglazeMounted;
-    const text = platform.getText(post);
-    if (!text || text.length < 12) return;
+    const source = snapshotSource(post);
+    if (!source.text || source.text.length < 12) return;
 
     post.dataset.unglazeMounted = "1";
 
@@ -172,10 +184,10 @@
     const card = el("div", "unglaze-card");
     card.hidden = true;
 
-    const state = { root, button, card, sourceText: text };
+    const state = { root, button, card, source };
     button.addEventListener("click", () => {
-      const currentText = syncSource(post, state);
-      if (!currentText || currentText.length < 12) {
+      const current = syncSource(post, state);
+      if (!current.text || current.text.length < 12) {
         resetAnalysis(state);
         return;
       }
@@ -188,11 +200,10 @@
         button.disabled = true;
         button.textContent = "Unglazing…";
         try {
-          const links = platform.getLinks(post);
-          const result = core.analyze({ text: currentText, links });
+          const result = core.analyze({ text: current.text, links: current.links });
           renderAnalysis(card, result, {
-            author: platform.getAuthor(post),
-            links
+            author: current.author,
+            links: current.links
           });
           card.dataset.ready = "1";
         } catch (error) {
