@@ -45,3 +45,22 @@ for (const [input, expected] of sentenceFixtures) {
 const decimalClaim = analyze({ text: "1.5 million customers joined." });
 assert.ok(decimalClaim.claims.some(({ text }) => text.includes("1.5 million customers")));
 assert.ok(!decimalClaim.claims.some(({ text }) => text.startsWith("5 million")));
+
+
+// E218: a forecast with numerical details is still a forecast, not an observed fact.
+// These deterministic controls must fail before the classifier correction.
+const epistemicFixtures = [
+  { text: "We will reach 100,000 customers in 2027.", factual: 0, predictions: 1, claims: 0 },
+  { text: "We reached 100,000 customers in May 2025.", factual: 1, predictions: 0, claims: 1 },
+  { text: "The service may reach 50,000 users.", factual: 0, predictions: 1, claims: 0 },
+  { text: "May 2025 revenue reached $1.2M.", factual: 1, predictions: 0, claims: 1 },
+  { text: "We expect revenue of $10M.", factual: 0, predictions: 1, claims: 0 },
+  { text: "Revenue might hit $10M.", factual: 0, predictions: 1, claims: 0 },
+  { text: "We reached $5M last year. We will reach $10M next year.", factual: 1, predictions: 1, claims: 1 }
+];
+for (const fixture of epistemicFixtures) {
+  const analysis = analyze({ text: fixture.text });
+  assert.equal(analysis.factualClaims.length, fixture.factual, fixture.text + ": factual");
+  assert.equal(analysis.predictions.length, fixture.predictions, fixture.text + ": prediction");
+  assert.equal(analysis.claims.length, fixture.claims, fixture.text + ": claims");
+}

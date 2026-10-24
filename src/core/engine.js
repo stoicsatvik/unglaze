@@ -77,10 +77,17 @@
   };
 
   const isOpinion = (sentence) => opinionPatterns.some((pattern) => pattern.test(sentence));
-  const isPrediction = (sentence) => predictionPatterns.some((pattern) => pattern.test(sentence));
+  const isPrediction = (sentence) => {
+    // A dated "May" is a calendar month, not a modal forecast.
+    const withoutMayDates = sentence.replace(
+      /\bmay\s+(?:\d{1,2}(?:,\s*)?)?\d{4}\b|\b\d{1,2}\s+may\s+\d{4}\b/gi,
+      ""
+    );
+    return predictionPatterns.some((pattern) => pattern.test(withoutMayDates));
+  };
 
   const looksFactual = (sentence) => {
-    if (isOpinion(sentence)) return false;
+    if (isOpinion(sentence) || isPrediction(sentence)) return false;
     return (
       numberDetector.test(sentence) ||
       monthPattern.test(sentence) ||
@@ -142,7 +149,7 @@
     const predictions = sentences.filter(isPrediction);
     const factualClaims = sentences.filter(looksFactual);
     const claims = sentences
-      .filter((sentence) => !opinions.includes(sentence))
+      .filter((sentence) => !opinions.includes(sentence) && !predictions.includes(sentence))
       .map((sentence) => ({
         text: stripGlaze(sentence),
         status: "self_reported",
