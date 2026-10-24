@@ -6,6 +6,15 @@ let overlayRemoved = false;
 const original = "This post contains 1.5 million customers.";
 const post = {
   querySelector: () => null,
+  querySelectorAll: (selector) => {
+    assert.equal(selector, "a[href]");
+    return [
+      { href: "https://nature.example/report", innerText: "Original citation",
+        getAttribute: () => null, closest: () => null },
+      { href: "https://stale.example/previous-post", innerText: "Injected citation",
+        getAttribute: () => null, closest: (name) => name === ".unglaze-root" ? {} : null }
+    ];
+  },
   cloneNode: (deep) => {
     assert.equal(deep, true);
     return {
@@ -31,4 +40,7 @@ vm.runInNewContext(readFileSync(new URL("../src/platforms/adapters.js", import.m
 assert.equal(sandbox.UnglazePlatform.getText(post), original);
 assert.ok(overlayRemoved, "injected overlay must be removed from fallback clone");
 assert.equal(sandbox.UnglazePlatform.getPosts().length, 1);
+const links = sandbox.UnglazePlatform.getLinks(post);
+assert.deepEqual(links.map((link) => link.href), ["https://nature.example/report"],
+  "injected source links must never be attributed to the host post");
 console.log("Unglaze fallback source-isolation tests passed.");
