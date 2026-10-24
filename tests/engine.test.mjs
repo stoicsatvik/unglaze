@@ -64,3 +64,40 @@ for (const fixture of epistemicFixtures) {
   assert.equal(analysis.predictions.length, fixture.predictions, fixture.text + ": prediction");
   assert.equal(analysis.claims.length, fixture.claims, fixture.text + ": claims");
 }
+
+// E237: an unrelated sentence must not supply missing evidence for another claim.
+// The previous whole-post detector lets unrelated baselines, units and qualifiers
+// erase missing-context warnings. These fixtures are deliberately conservative.
+const contextIsolationFixtures = [
+  {
+    text: "Revenue grew 40%. We moved from 2 to 4 offices.",
+    expected: ["Percentage change is given without a clear baseline.", "Growth claim does not specify a time window."]
+  },
+  {
+    text: "We reached 10,000 users. Another product has 300 paying customers.",
+    expected: ["User/customer metric is not clearly defined."]
+  },
+  {
+    text: "Revenue grew 50% last year. Another division reported $5M revenue.",
+    expected: ["Revenue is mentioned without an absolute amount."]
+  },
+  {
+    text: "We raised funding. A separate project secured a seed grant.",
+    expected: ["Funding claim omits round structure or investor context."]
+  }
+];
+for (const fixture of contextIsolationFixtures) {
+  const gaps = inferMissingContext(fixture.text);
+  for (const warning of fixture.expected) {
+    assert.ok(gaps.includes(warning), fixture.text + " must retain: " + warning);
+  }
+  assert.deepEqual(analyze({ text: fixture.text }).missingContext, gaps);
+}
+
+// Legitimately scoped same-sentence context still satisfies the detector.
+assert.ok(!inferMissingContext("Revenue grew 40% from $10M to $14M last year.").includes(
+  "Percentage change is given without a clear baseline."
+));
+assert.ok(!inferMissingContext("20,000 monthly active users signed up.").includes(
+  "User/customer metric is not clearly defined."
+));
