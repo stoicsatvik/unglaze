@@ -45,6 +45,8 @@ const find = (root, cls) => {
 
 const post = new Element("article");
 post.sourceText = "We reached 100 customers this month.";
+post.sourceAuthor = "original author";
+post.sourceLinks = [];
 const analyzed = [];
 let mutationCallback;
 const sandbox = {
@@ -57,8 +59,8 @@ const sandbox = {
     platform: "reddit",
     getPosts: () => [post],
     getText: (node) => node.sourceText,
-    getLinks: () => [],
-    getAuthor: () => "author"
+    getLinks: (node) => node.sourceLinks,
+    getAuthor: (node) => node.sourceAuthor
   },
   UnglazeCore: {
     analyze: ({ text }) => {
@@ -108,6 +110,29 @@ post.sourceText = "We reached 300 customers this month.";
 button.events.click();
 assert.equal(analyzed.at(-1), "We reached 300 customers this month.");
 assert.equal(analyzed.length, 3);
+
+// Same post text, different author: cached attribution must be invalidated.
+post.sourceAuthor = "replacement author";
+mutationCallback();
+assert.equal(card.hidden, true, "author change must hide stale author attribution");
+assert.equal(card.dataset.ready, undefined);
+button.events.click();
+assert.equal(find(card, "unglaze-author").textContent, "replacement author");
+assert.equal(analyzed.length, 4);
+
+// Same text and author, different evidence URL: cached linked sources must be invalidated.
+post.sourceLinks = [{ href: "https://journal.example/new", text: "new source", external: true }];
+mutationCallback();
+assert.equal(card.hidden, true, "citation change must hide stale evidence links");
+button.events.click();
+assert.equal(find(card, "unglaze-link").href, "https://journal.example/new");
+assert.equal(analyzed.length, 5);
+
+// Click also detects metadata changes before the mutation observer debounce.
+post.sourceLinks = [{ href: "https://journal.example/revised", text: "revised source", external: true }];
+button.events.click();
+assert.equal(find(card, "unglaze-link").href, "https://journal.example/revised");
+assert.equal(analyzed.length, 6);
 
 post.sourceText = "short";
 mutationCallback();
