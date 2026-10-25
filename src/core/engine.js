@@ -149,7 +149,7 @@
   // Deliberately do not split arbitrary "and" without punctuation: it may
   // join one measurement rather than introduce a second claim.
   const splitClaimClauses = (sentence) =>
-    sentence.split(/;\\s*|,\\s*(?:but|while|whereas|and)\\s+/i)
+    sentence.split(/;\s*|,\s*(?:but|while|whereas|and)\s+/i)
       .map(normalizeWhitespace).filter(Boolean);
 
   const inferMissingContext = (text) => {
