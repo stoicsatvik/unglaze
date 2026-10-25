@@ -121,3 +121,16 @@ for (const f of percentArithmeticFixtures) {
   assert.equal(warnings.includes("Percentage change conflicts with the stated from/to values."), f.mismatch, f.text + ": arithmetic");
   assert.equal(warnings.includes("Percentage change is given without a clear baseline."), f.missing, f.text + ": baseline");
 }
+
+const crossMetricFixtures = [
+  "Users grew 25% from 2 to 4 offices this year.",
+  "Customers grew 25% from 100 to 125 employees this year."
+];
+for (const text of crossMetricFixtures) {
+  assert.ok(inferMissingContext(text).includes(
+    "Percentage change is given without a clear baseline."
+  ), text + ": unrelated headcount/office unit cannot establish customer growth");
+}
+assert.ok(!inferMissingContext("Revenue grew 40% from 10 million to 14 million last year.").includes(
+  "Percentage change is given without a clear baseline."
+));
