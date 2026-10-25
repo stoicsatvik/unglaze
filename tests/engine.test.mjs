@@ -101,3 +101,36 @@ assert.ok(!inferMissingContext("Revenue grew 40% from $10M to $14M last year.").
 assert.ok(!inferMissingContext("20,000 monthly active users signed up.").includes(
   "User/customer metric is not clearly defined."
 ));
+
+
+// E253: an explicit numeric baseline must agree with its stated percentage.
+// The prior heuristic accepted any "from X to Y" text, including unrelated
+// offices and arithmetically inconsistent revenue/user claims.
+const percentArithmeticFixtures = [
+  { text: "Revenue grew 40% from $10M to $14M last year.", mismatch: false, missing: false },
+  { text: "Revenue grew 40% from $10M to $11M last year.", mismatch: true, missing: false },
+  { text: "Revenue grew 40% from 2 to 4 offices last year.", mismatch: false, missing: true },
+  { text: "Users grew 25% from 1,000 to 1,250 users this year.", mismatch: false, missing: false },
+  { text: "Users grew 25% from 1,000 to 1,500 users this year.", mismatch: true, missing: false },
+  { text: "Revenue fell 40% from $10M to $6M last year.", mismatch: false, missing: false },
+  { text: "Revenue fell 40% from $10M to $14M last year.", mismatch: true, missing: false },
+  { text: "Revenue grew 40% from $0 to $5M last year.", mismatch: false, missing: true }
+];
+for (const f of percentArithmeticFixtures) {
+  const warnings = inferMissingContext(f.text);
+  assert.equal(warnings.includes("Percentage change conflicts with the stated from/to values."), f.mismatch, f.text + ": arithmetic");
+  assert.equal(warnings.includes("Percentage change is given without a clear baseline."), f.missing, f.text + ": baseline");
+}
+
+const crossMetricFixtures = [
+  "Users grew 25% from 2 to 4 offices this year.",
+  "Customers grew 25% from 100 to 125 employees this year."
+];
+for (const text of crossMetricFixtures) {
+  assert.ok(inferMissingContext(text).includes(
+    "Percentage change is given without a clear baseline."
+  ), text + ": unrelated headcount/office unit cannot establish customer growth");
+}
+assert.ok(!inferMissingContext("Revenue grew 40% from 10 million to 14 million last year.").includes(
+  "Percentage change is given without a clear baseline."
+));
