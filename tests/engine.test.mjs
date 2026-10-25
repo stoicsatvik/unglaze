@@ -134,3 +134,40 @@ for (const text of crossMetricFixtures) {
 assert.ok(!inferMissingContext("Revenue grew 40% from 10 million to 14 million last year.").includes(
   "Percentage change is given without a clear baseline."
 ));
+
+
+// E272: separate claims in one grammatical sentence must not borrow one another's
+// baselines or hide an independently inconsistent percentage.
+const clauseIsolationFixtures = [
+  {
+    text: "Revenue grew 40% from $10M to $14M, but costs fell 70% from $10M to $9M last year.",
+    missing: false, mismatch: true
+  },
+  {
+    text: "Revenue grew 40% from $10M to $14M; costs fell 10% from $10M to $9M last year.",
+    missing: false, mismatch: false
+  },
+  {
+    text: "Revenue grew 40%, while users rose from 100 to 140.",
+    missing: true, mismatch: false
+  },
+  {
+    text: "Revenue grew 40% from $10M to $14M, while users rose 70% from 100 to 140.",
+    missing: false, mismatch: true
+  },
+  {
+    text: "Revenue grew 40% from $10M to $14M, and costs fell 70% from $10M to $9M.",
+    missing: false, mismatch: true
+  }
+];
+for (const fixture of clauseIsolationFixtures) {
+  const warnings = inferMissingContext(fixture.text);
+  assert.equal(
+    warnings.includes("Percentage change is given without a clear baseline."),
+    fixture.missing, fixture.text + ": missing baseline"
+  );
+  assert.equal(
+    warnings.includes("Percentage change conflicts with the stated from/to values."),
+    fixture.mismatch, fixture.text + ": independent arithmetic"
+  );
+}
