@@ -52,7 +52,7 @@
   const splitSentences = (text) => {
     const normalized = normalizeWhitespace(text);
     if (!normalized) return [];
-    const parts = normalized.match(/[^.!?\n]+(?:[.!?]+|$)/g) || [normalized];
+    const parts = normalized.split(/(?<=[.!?])\s+(?=\S)/);
     return parts.map(normalizeWhitespace).filter((part) => part.length > 2);
   };
 
@@ -77,10 +77,17 @@
   };
 
   const isOpinion = (sentence) => opinionPatterns.some((pattern) => pattern.test(sentence));
-  const isPrediction = (sentence) => predictionPatterns.some((pattern) => pattern.test(sentence));
+  const isPrediction = (sentence) => {
+    // A dated "May" is a calendar month, not a modal forecast.
+    const withoutMayDates = sentence.replace(
+      /\bmay\s+(?:\d{1,2}(?:,\s*)?)?\d{4}\b|\b\d{1,2}\s+may\s+\d{4}\b/gi,
+      ""
+    );
+    return predictionPatterns.some((pattern) => pattern.test(withoutMayDates));
+  };
 
   const looksFactual = (sentence) => {
-    if (isOpinion(sentence)) return false;
+    if (isOpinion(sentence) || isPrediction(sentence)) return false;
     return (
       numberDetector.test(sentence) ||
       monthPattern.test(sentence) ||
@@ -90,27 +97,83 @@
 
   const unique = (items) => [...new Set(items.filter(Boolean))];
 
-  const hasPercentageBaseline = (text) =>
-    /baseline|previous|prior/i.test(text) ||
-    /\bfrom\b\s+[^.!?]{0,40}\bto\b/i.test(text) ||
-    /\b(?:from|to)\s+[$₹€£]?\s*\d/i.test(text);
+  // E253: a textual "from/to" is not automatically evidence for a
+  // percentage. Require an explicit numeric pair, compatible units, and a
+  // nonzero denominator. This checks internal arithmetic, NOT external truth.
+  const amountScales = { k: 1e3, m: 1e6, b: 1e9, million: 1e6,
+    billion: 1e9, crore: 1e7, lakh: 1e5 };
+  const numericBaselinePattern =
+    /\bfrom\s+([$₹€£]?)\s*(\d[\d,]*(?:\.\d+)?)\s*(k|m|b|million|billion|crore|lakh)?\s+to\s+([$₹€£]?)\s*(\d[\d,]*(?:\.\d+)?)\s*(k|m|b|million|billion|crore|lakh)?\b/i;
+
+  const percentageBaseline = (sentence) => {
+    const match = numericBaselinePattern.exec(sentence);
+    if (!match) return { clear: false, inconsistent: false };
+    const [, firstCurrency, first, firstUnit, lastCurrency, last, lastUnit] = match;
+    const firstScale = firstUnit?.toLowerCase() || "";
+    const lastScale = lastUnit?.toLowerCase() || "";
+    if (Boolean(firstCurrency) !== Boolean(lastCurrency) ||
+        (firstCurrency && firstCurrency !== lastCurrency) ||
+        Boolean(firstScale) !== Boolean(lastScale)) {
+      return { clear: false, inconsistent: false };
+    }
+    // Do not mistake office/headcount changes for a revenue baseline.
+    const after = sentence.slice(match.index + match[0].length);
+    if (/^\s*(?:offices?|stores?|branches?|locations?|employees?|teams?|projects?|products?)\b/i.test(after) &&
+        /\b(?:revenue|users?|customers?)\b/i.test(sentence)) {
+      return { clear: false, inconsistent: false };
+    }
+    if (/\brevenue\b/i.test(sentence) &&
+        !firstCurrency && !/^(?:m|b|million|billion|crore|lakh)$/.test(firstScale)) {
+      return { clear: false, inconsistent: false };
+    }
+    const start = Number(first.replace(/,/g, "")) * (amountScales[firstScale] || 1);
+    const end = Number(last.replace(/,/g, "")) * (amountScales[lastScale] || 1);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || start <= 0) {
+      return { clear: false, inconsistent: false };
+    }
+    const stated = /\b(\d+(?:\.\d+)?)\s*%/.exec(sentence);
+    if (!stated) return { clear: true, inconsistent: false };
+    const actual = 100 * (end - start) / start;
+    const decline = /\b(?:fell|declined|decreased|dropped|down)\b/i.test(sentence);
+    const increase = /\b(?:grew|growth|increased|increase|rose|up|gained)\b/i.test(sentence);
+    const expected = Number(stated[1]) * (decline && !increase ? -1 : 1);
+    const inconsistent = increase || decline
+      ? Math.abs(actual - expected) > 0.75
+      : Math.abs(Math.abs(actual) - Number(stated[1])) > 0.75;
+    return { clear: true, inconsistent };
+  };
+
+  // One grammatical sentence can report independent metrics separated by
+  // contrastive or coordinating clauses. Evaluate each explicit clause in
+  // isolation; a baseline in one claim cannot validate a different claim.
+  // Deliberately do not split arbitrary "and" without punctuation: it may
+  // join one measurement rather than introduce a second claim.
+  const splitClaimClauses = (sentence) =>
+    sentence.split(/;\s*|,\s*(?:but|while|whereas|and)\s+/i)
+      .map(normalizeWhitespace).filter(Boolean);
 
   const inferMissingContext = (text) => {
     const missing = [];
-    if (/\b\d+(?:\.\d+)?%/.test(text) && !hasPercentageBaseline(text)) {
-      missing.push("Percentage change is given without a clear baseline.");
-    }
-    if (/\b(?:users?|customers?)\b/i.test(text) && !/active|paying|registered|monthly|daily|retained/i.test(text)) {
-      missing.push("User/customer metric is not clearly defined.");
-    }
-    if (/\brevenue\b/i.test(text) && !/[$₹€£]|crore|lakh|million|billion|\bk\b|\bm\b/i.test(text)) {
-      missing.push("Revenue is mentioned without an absolute amount.");
-    }
-    if (/\b(?:raised|funding|round)\b/i.test(text) && !/seed|series|pre-seed|debt|grant|valuation|lead investor/i.test(text)) {
-      missing.push("Funding claim omits round structure or investor context.");
-    }
-    if (/\b(?:grew|growth|increase|increased|up)\b/i.test(text) && !/\b(?:month|quarter|year|week|day|yoy|mom|qoq)\b/i.test(text)) {
-      missing.push("Growth claim does not specify a time window.");
+    // Evaluate evidence locally. An unrelated clause must not "validate" a
+    // percentage, user count, revenue figure, funding claim or growth window.
+    for (const sentence of splitSentences(text).flatMap(splitClaimClauses)) {
+      if (/\b\d+(?:\.\d+)?%/.test(sentence)) {
+        const baseline = percentageBaseline(sentence);
+        if (!baseline.clear) missing.push("Percentage change is given without a clear baseline.");
+        if (baseline.inconsistent) missing.push("Percentage change conflicts with the stated from/to values.");
+      }
+      if (/\b(?:users?|customers?)\b/i.test(sentence) && !/active|paying|registered|monthly|daily|retained/i.test(sentence)) {
+        missing.push("User/customer metric is not clearly defined.");
+      }
+      if (/\brevenue\b/i.test(sentence) && !/[$₹€£]|crore|lakh|million|billion|\bk\b|\bm\b/i.test(sentence)) {
+        missing.push("Revenue is mentioned without an absolute amount.");
+      }
+      if (/\b(?:raised|funding|round)\b/i.test(sentence) && !/seed|series|pre-seed|debt|grant|valuation|lead investor/i.test(sentence)) {
+        missing.push("Funding claim omits round structure or investor context.");
+      }
+      if (/\b(?:grew|growth|increase|increased|up)\b/i.test(sentence) && !/\b(?:month|quarter|year|week|day|yoy|mom|qoq)\b/i.test(sentence)) {
+        missing.push("Growth claim does not specify a time window.");
+      }
     }
     return unique(missing);
   };
@@ -142,7 +205,7 @@
     const predictions = sentences.filter(isPrediction);
     const factualClaims = sentences.filter(looksFactual);
     const claims = sentences
-      .filter((sentence) => !opinions.includes(sentence))
+      .filter((sentence) => !opinions.includes(sentence) && !predictions.includes(sentence))
       .map((sentence) => ({
         text: stripGlaze(sentence),
         status: "self_reported",
