@@ -97,18 +97,61 @@
 
   const unique = (items) => [...new Set(items.filter(Boolean))];
 
-  const hasPercentageBaseline = (text) =>
-    /baseline|previous|prior/i.test(text) ||
-    /\bfrom\b\s+[^.!?]{0,40}\bto\b/i.test(text) ||
-    /\b(?:from|to)\s+[$₹€£]?\s*\d/i.test(text);
+  // E253: a textual "from/to" is not automatically evidence for a
+  // percentage. Require an explicit numeric pair, compatible units, and a
+  // nonzero denominator. This checks internal arithmetic, NOT external truth.
+  const amountScales = { k: 1e3, m: 1e6, b: 1e9, million: 1e6,
+    billion: 1e9, crore: 1e7, lakh: 1e5 };
+  const numericBaselinePattern =
+    /\bfrom\s+([$₹€£]?)\s*(\d[\d,]*(?:\.\d+)?)\s*(k|m|b|million|billion|crore|lakh)?\s+to\s+([$₹€£]?)\s*(\d[\d,]*(?:\.\d+)?)\s*(k|m|b|million|billion|crore|lakh)?\b/i;
+
+  const percentageBaseline = (sentence) => {
+    const match = numericBaselinePattern.exec(sentence);
+    if (!match) return { clear: false, inconsistent: false };
+    const [, firstCurrency, first, firstUnit, lastCurrency, last, lastUnit] = match;
+    const firstScale = firstUnit?.toLowerCase() || "";
+    const lastScale = lastUnit?.toLowerCase() || "";
+    if (Boolean(firstCurrency) !== Boolean(lastCurrency) ||
+        (firstCurrency && firstCurrency !== lastCurrency) ||
+        Boolean(firstScale) !== Boolean(lastScale)) {
+      return { clear: false, inconsistent: false };
+    }
+    // Do not mistake office/headcount changes for a revenue baseline.
+    const after = sentence.slice(match.index + match[0].length);
+    if (/^\s*(?:offices?|stores?|branches?|locations?|employees?|teams?|projects?|products?)\b/i.test(after) &&
+        /\brevenue\b/i.test(sentence)) {
+      return { clear: false, inconsistent: false };
+    }
+    if (/\brevenue\b/i.test(sentence) &&
+        !firstCurrency && !/^(?:m|b|million|billion|crore|lakh)$/.test(firstScale)) {
+      return { clear: false, inconsistent: false };
+    }
+    const start = Number(first.replace(/,/g, "")) * (amountScales[firstScale] || 1);
+    const end = Number(last.replace(/,/g, "")) * (amountScales[lastScale] || 1);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || start <= 0) {
+      return { clear: false, inconsistent: false };
+    }
+    const stated = /\b(\d+(?:\.\d+)?)\s*%/.exec(sentence);
+    if (!stated) return { clear: true, inconsistent: false };
+    const actual = 100 * (end - start) / start;
+    const decline = /\b(?:fell|declined|decreased|dropped|down)\b/i.test(sentence);
+    const increase = /\b(?:grew|growth|increased|increase|rose|up|gained)\b/i.test(sentence);
+    const expected = Number(stated[1]) * (decline && !increase ? -1 : 1);
+    const inconsistent = increase || decline
+      ? Math.abs(actual - expected) > 0.75
+      : Math.abs(Math.abs(actual) - Number(stated[1])) > 0.75;
+    return { clear: true, inconsistent };
+  };
 
   const inferMissingContext = (text) => {
     const missing = [];
     // Evaluate evidence locally. An unrelated sentence must not "validate" a
     // percentage, user count, revenue figure, funding claim or growth window.
     for (const sentence of splitSentences(text)) {
-      if (/\b\d+(?:\.\d+)?%/.test(sentence) && !hasPercentageBaseline(sentence)) {
-        missing.push("Percentage change is given without a clear baseline.");
+      if (/\b\d+(?:\.\d+)?%/.test(sentence)) {
+        const baseline = percentageBaseline(sentence);
+        if (!baseline.clear) missing.push("Percentage change is given without a clear baseline.");
+        if (baseline.inconsistent) missing.push("Percentage change conflicts with the stated from/to values.");
       }
       if (/\b(?:users?|customers?)\b/i.test(sentence) && !/active|paying|registered|monthly|daily|retained/i.test(sentence)) {
         missing.push("User/customer metric is not clearly defined.");
