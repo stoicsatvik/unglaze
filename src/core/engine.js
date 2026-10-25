@@ -143,11 +143,20 @@
     return { clear: true, inconsistent };
   };
 
+  // One grammatical sentence can report independent metrics separated by
+  // contrastive or coordinating clauses. Evaluate each explicit clause in
+  // isolation; a baseline in one claim cannot validate a different claim.
+  // Deliberately do not split arbitrary "and" without punctuation: it may
+  // join one measurement rather than introduce a second claim.
+  const splitClaimClauses = (sentence) =>
+    sentence.split(/;\\s*|,\\s*(?:but|while|whereas|and)\\s+/i)
+      .map(normalizeWhitespace).filter(Boolean);
+
   const inferMissingContext = (text) => {
     const missing = [];
-    // Evaluate evidence locally. An unrelated sentence must not "validate" a
+    // Evaluate evidence locally. An unrelated clause must not "validate" a
     // percentage, user count, revenue figure, funding claim or growth window.
-    for (const sentence of splitSentences(text)) {
+    for (const sentence of splitSentences(text).flatMap(splitClaimClauses)) {
       if (/\b\d+(?:\.\d+)?%/.test(sentence)) {
         const baseline = percentageBaseline(sentence);
         if (!baseline.clear) missing.push("Percentage change is given without a clear baseline.");
