@@ -119,7 +119,7 @@
     // Do not mistake office/headcount changes for a revenue baseline.
     const after = sentence.slice(match.index + match[0].length);
     if (/^\s*(?:offices?|stores?|branches?|locations?|employees?|teams?|projects?|products?)\b/i.test(after) &&
-        /\brevenue\b/i.test(sentence)) {
+        /\b(?:revenue|users?|customers?)\b/i.test(sentence)) {
       return { clear: false, inconsistent: false };
     }
     if (/\brevenue\b/i.test(sentence) &&
