@@ -193,3 +193,34 @@ const withoutLinks = analyze({ text: "We launched in May 2026." });
 assert.deepEqual(withoutLinks.sourceLinks, []);
 assert.deepEqual(withoutLinks.evidenceLinks, []);
 assert.ok(withoutLinks.claims.every(c => c.verification === "not_checked" && !Object.hasOwn(c, "confidence")));
+
+
+// E309 negative controls: a sentence is not automatically an asserted
+// factual claim merely because it survives opinion/forecast filtering.
+// Synthetic examples isolate the structural bug; they are not an NLP corpus.
+const e309Nulls = [
+  "Thanks for reading.",
+  "Hello everyone.",
+  "Follow for more updates.",
+  "Please subscribe to our newsletter.",
+  "Welcome back. Enjoy your day."
+];
+for (const text of e309Nulls) {
+  const audit = analyze({ text });
+  assert.deepEqual(audit.factualClaims, [], text + ": factual null");
+  assert.deepEqual(audit.claims, [], text + ": must not emit a claim");
+}
+const e309Positives = [
+  "We reached 100 paying customers.",
+  "Revenue reached ₹1.25 crore in 2025.",
+  "The company launched in April 2026.",
+  "We raised $1.2M in seed funding."
+];
+for (const text of e309Positives) {
+  const audit = analyze({ text });
+  assert.equal(audit.factualClaims.length, 1, text + ": factual positive");
+  assert.equal(audit.claims.length, 1, text + ": claim preserved");
+  assert.equal(audit.claims[0].verification, "not_checked");
+  assert.equal(Object.hasOwn(audit.claims[0], "confidence"), false);
+}
+assert.equal(analyze({ text: "We will reach 100 customers." }).claims.length, 0);
