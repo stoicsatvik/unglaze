@@ -209,13 +209,13 @@
       .map((sentence) => ({
         text: stripGlaze(sentence),
         status: "self_reported",
-        confidence: looksFactual(sentence) ? 0.72 : 0.55
+        verification: "not_checked"
       }))
       .filter((claim) => claim.text.length > 3)
       .slice(0, 12);
 
     const numbers = unique(normalized.match(numberExtractor) || []).slice(0, 20);
-    const evidenceLinks = unique(
+    const sourceLinks = unique(
       links
         .map((link) => (typeof link === "string" ? link : link?.href))
         .filter((href) => /^https?:\/\//i.test(href || ""))
@@ -229,7 +229,9 @@
       claims,
       factualClaims: factualClaims.map(stripGlaze).slice(0, 12),
       numbers,
-      evidenceLinks,
+      // A linked URL is only a lead, never verified evidence.
+      sourceLinks,
+      evidenceLinks: [],
       opinions: opinions.slice(0, 8),
       predictions: predictions.slice(0, 8),
       promotionalLanguage,
