@@ -19,7 +19,8 @@ assert.ok(result.numbers.some((item) => item.includes("200%")));
 assert.ok(result.numbers.some((item) => item.includes("10,000")));
 assert.ok(result.missingContext.includes("Percentage change is given without a clear baseline."));
 assert.ok(result.missingContext.includes("User/customer metric is not clearly defined."));
-assert.ok(result.evidenceLinks.includes("https://example.com/report"));
+assert.ok(result.sourceLinks.includes("https://example.com/report"));
+assert.deepEqual(result.evidenceLinks, []);
 assert.ok(result.opinions.length >= 1);
 
 const gaps = inferMissingContext("Revenue grew 50%.");
@@ -171,3 +172,24 @@ for (const fixture of clauseIsolationFixtures) {
     fixture.mismatch, fixture.text + ": independent arithmetic"
   );
 }
+
+
+// E292: an outbound URL and a plausible-sounding numeric statement do not
+// supply independent verification or a calibrated probability.
+for (const url of [
+  "https://example.com/company-press-release",
+  "https://example.org/marketing",
+  "https://example.net/research",
+]) {
+  const audit = analyze({ text: "We reached 25,000 customers.", links: [url] });
+  assert.deepEqual(audit.sourceLinks, [url]);
+  assert.deepEqual(audit.evidenceLinks, []);
+  assert.equal(audit.claims.length, 1);
+  assert.equal(audit.claims[0].status, "self_reported");
+  assert.equal(audit.claims[0].verification, "not_checked");
+  assert.equal(Object.hasOwn(audit.claims[0], "confidence"), false);
+}
+const withoutLinks = analyze({ text: "We launched in May 2026." });
+assert.deepEqual(withoutLinks.sourceLinks, []);
+assert.deepEqual(withoutLinks.evidenceLinks, []);
+assert.ok(withoutLinks.claims.every(c => c.verification === "not_checked" && !Object.hasOwn(c, "confidence")));
