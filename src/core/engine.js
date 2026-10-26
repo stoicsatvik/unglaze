@@ -204,8 +204,11 @@
     const opinions = sentences.filter(isOpinion);
     const predictions = sentences.filter(isPrediction);
     const factualClaims = sentences.filter(looksFactual);
+    // A sentence surviving the opinion/forecast filters is not necessarily
+    // a factual assertion. Reuse the same conservative candidate predicate
+    // as factualClaims; keep self-reported/unverified labels unchanged.
     const claims = sentences
-      .filter((sentence) => !opinions.includes(sentence) && !predictions.includes(sentence))
+      .filter(looksFactual)
       .map((sentence) => ({
         text: stripGlaze(sentence),
         status: "self_reported",
