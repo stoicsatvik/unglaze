@@ -1,0 +1,38 @@
+name: E335 external check-worthiness falsification
+on:
+  push:
+    branches:
+      - "foundry/e335-external-claimworthiness-falsification-20261027"
+  pull_request:
+    paths:
+      - "research/e335_claimbuster_eval.mjs"
+      - "tests/e335_external_claimworthiness.test.mjs"
+      - ".github/workflows/e335-external-claimworthiness.yml"
+permissions:
+  contents: read
+jobs:
+  external-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Existing regression
+        run: npm test
+      - name: Offline metric and integrity controls
+        run: node --test tests/e335_external_claimworthiness.test.mjs
+      - name: Retrieve pinned public evaluation data (no redistribution)
+        run: |
+          mkdir -p /tmp/unglaze-e335
+          curl --fail --location --retry 3 --max-time 90 --silent --show-error \
+            "https://raw.githubusercontent.com/utaresearch/claimbuster-spotter/332bba0819d79f8e42d0a70277597dfe97036873/data/two_class/test.json" \
+            --output /tmp/unglaze-e335/test.json
+      - name: Execute external-data benchmark with Git blob fingerprint
+        run: node research/e335_claimbuster_eval.mjs /tmp/unglaze-e335/test.json research/results/e335_claimbuster_receipt.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e335-external-checkworthiness-receipt
+          path: research/results/e335_claimbuster_receipt.json
+          retention-days: 30
