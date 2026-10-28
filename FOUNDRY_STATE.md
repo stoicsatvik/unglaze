@@ -21,3 +21,16 @@ A forecast containing numeric details could previously appear as a factual obser
 **Next:** Test quoted text, anaphora, adjacent sentences explicitly referring to the same metric, locale-specific numeric formats, and user-observed feed excerpts with permission. Do not scrape private feeds or introduce external requests by default.
 
 **Branch:** `foundry/e237-context-isolation-20261025`; draft PR #10 stacked on #9. No main merge, external network access, user tracking, or deployment.
+
+
+## E351 — coordinated-metric evidence isolation (28 October 2026)
+
+**Falsification:** In a sentence without a comma, `Revenue grew 40% from $10M to $14M and costs fell 70% from $10M to $9M last year`, the earlier clause splitter treated both metrics as one claim. The first from/to and 40% values hid the second arithmetic contradiction. This is a concrete local consistency false negative, not a factual-verification result.
+
+**Change:** Split an unpunctuated `and` only when it introduces an explicit new metric noun (revenue, costs, users, customers, profits, sales, expenses, funding, headcount) followed by a change verb. Existing punctuation splitting remains. Controls cover inconsistent second metric, consistent second metric, second percentage without baseline, and ordinary nonmetric coordination.
+
+**Evidence:** Test-first commit `1eae3e1ec3744c0ee7a933f5185bef06ce271b74` produced a failing CI run [40627356238](https://github.com/stoicsatvik/unglaze/actions/runs/40627356238). Implementation commit `c4a0587893f8bcbac80917ff76739c53dd3f4259` passed [exact-head CI 40627379078](https://github.com/stoicsatvik/unglaze/actions/runs/40627379078) (npm test). Branch `foundry/e351-coordinated-metric-isolation-20261028`, draft PR #16 stacked on E335 #15.
+
+**Claim:** Second-metric arithmetic and missing-baseline detection **SUPPORTED IN DETERMINISTIC FIXTURES**. General coordinated-language parsing, external truth verification, and real social-feed precision/recall remain **NOT YET PROVEN**. E335 independent ClaimBuster test remains a negative generalization result, unchanged by this fix.
+
+**Next:** Freeze the heuristic, obtain an independently annotated social-feed corpus, and compare claim-level precision/recall against simpler baselines before any product claim or deployment.
