@@ -257,3 +257,28 @@ for (const fixture of e351CoordinatedMetrics) {
   assert.equal(warnings.includes("Percentage change conflicts with the stated from/to values."), fixture.mismatch, fixture.text + ": coordinated mismatch");
   assert.equal(warnings.includes("Percentage change is given without a clear baseline."), fixture.missing, fixture.text + ": coordinated missing");
 }
+
+
+// E374: Unpunctuated contrastive metric clauses must not borrow a baseline
+// from a preceding independent claim. The E351 coordinating-"and" fix
+// leaves "while", "whereas" and "but" unprotected without a comma.
+const e374ContrastFixtures = [
+  { text: "Revenue grew 40% from $10M to $14M while costs fell 70% from $10M to $9M.", mismatch: true, missing: false },
+  { text: "Revenue grew 40% from $10M to $14M whereas costs fell 70% from $10M to $9M.", mismatch: true, missing: false },
+  { text: "Revenue grew 40% from $10M to $14M but costs fell 70% from $10M to $9M.", mismatch: true, missing: false },
+  { text: "Revenue grew 40% from $10M to $14M while costs fell 10% from $10M to $9M.", mismatch: false, missing: false },
+  { text: "Revenue grew 40% from $10M to $14M while costs fell 70% last year.", mismatch: false, missing: true },
+  { text: "Revenue grew 40% from $10M to $14M while we worked from home.", mismatch: false, missing: false },
+  { text: "Revenue grew 40% from $10M to $14M but we hired 10 people.", mismatch: false, missing: false }
+];
+for (const fixture of e374ContrastFixtures) {
+  const warnings = inferMissingContext(fixture.text);
+  assert.equal(
+    warnings.includes("Percentage change conflicts with the stated from/to values."),
+    fixture.mismatch, fixture.text + ": independent contrast arithmetic"
+  );
+  assert.equal(
+    warnings.includes("Percentage change is given without a clear baseline."),
+    fixture.missing, fixture.text + ": independent contrast baseline"
+  );
+}
