@@ -224,3 +224,36 @@ for (const text of e309Positives) {
   assert.equal(Object.hasOwn(audit.claims[0], "confidence"), false);
 }
 assert.equal(analyze({ text: "We will reach 100 customers." }).claims.length, 0);
+
+
+// E351: unpunctuated coordination of distinct measured metrics must not
+// let the first percentage/baseline silently validate a second one.
+// The original parser split only punctuation-delimited clauses, so the
+// first 40%/$10M->$14M masked a later 70%/$10M->$9M mismatch.
+const e351CoordinatedMetrics = [
+  {
+    text: "Revenue grew 40% from $10M to $14M and costs fell 70% from $10M to $9M last year.",
+    mismatch: true,
+    missing: false
+  },
+  {
+    text: "Revenue grew 40% from $10M to $14M and costs fell 10% from $10M to $9M last year.",
+    mismatch: false,
+    missing: false
+  },
+  {
+    text: "Revenue grew 40% from $10M to $14M and users grew 70% this year.",
+    mismatch: false,
+    missing: true
+  },
+  {
+    text: "Revenue grew 40% from $10M to $14M and we hired 10 people.",
+    mismatch: false,
+    missing: false
+  }
+];
+for (const fixture of e351CoordinatedMetrics) {
+  const warnings = inferMissingContext(fixture.text);
+  assert.equal(warnings.includes("Percentage change conflicts with the stated from/to values."), fixture.mismatch, fixture.text + ": coordinated mismatch");
+  assert.equal(warnings.includes("Percentage change is given without a clear baseline."), fixture.missing, fixture.text + ": coordinated missing");
+}
