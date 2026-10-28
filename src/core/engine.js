@@ -146,10 +146,12 @@
   // One grammatical sentence can report independent metrics separated by
   // contrastive or coordinating clauses. Evaluate each explicit clause in
   // isolation; a baseline in one claim cannot validate a different claim.
-  // Deliberately do not split arbitrary "and" without punctuation: it may
-  // join one measurement rather than introduce a second claim.
+  // Split unpunctuated "and" only when it introduces a second explicit
+  // metric and change verb. Otherwise keep conjunctions intact: "sales and
+  // marketing" is not a new numerical assertion. This is a conservative
+  // structural heuristic, not a complete natural-language parser.
   const splitClaimClauses = (sentence) =>
-    sentence.split(/;\s*|,\s*(?:but|while|whereas|and)\s+/i)
+    sentence.split(/;\s*|,\s*(?:but|while|whereas|and)\s+|\s+and\s+(?=(?:revenue|costs?|users?|customers?|profits?|sales|expenses?|funding|headcount)\s+(?:grew|rose|fell|declined|decreased|dropped|increased|reached|changed)\b)/i)
       .map(normalizeWhitespace).filter(Boolean);
 
   const inferMissingContext = (text) => {
