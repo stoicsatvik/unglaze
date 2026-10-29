@@ -53,3 +53,11 @@ A forecast containing numeric details could previously appear as a factual obser
 - **Correction:** Log-space binomial probability at the observed smaller discordance count, followed by backward ratio summation; invalid counts fail closed. Isolated Node 22 reproduction/validation: 3/3 tests passed. Repository regressions added; full suite/CI not run.
 - **Original E399 unchanged:** 33 vs 40 discordances still yield p≈0.482788556844; 502/1283 vs 509/1283 claim-candidate recall does not support superiority over digit-only. Synthetic count fixtures are not new real-world observations.
 - **Evidence:** `docs/E400_PAIRED_DISCORDANCE_STABILITY_20261030.md`, `research/e399_liar_recall_audit.mjs`, `tests/e399_liar_recall_audit.test.mjs`. Stacked draft, no merge or outreach.
+
+### E401 | 2026-10-30 | Compensated paired-tail numerical accuracy
+- **Synthetic negative:** E400's one-million-discordance 499020/500980 p-value differed from independent SciPy 1.17.0 reference by ~3.47e-10 due to cancellation during log-binomial accumulation. No observed significance reversal.
+- **Correction:** compensated log and tail accumulation; isolated Node 22 mirror 5/5 checks passed, corrected error ~8.5e-13. Repository million-pair regression added. **Full repo tests, exact-head CI and pinned external TSV remain unverified**; commits `[skip ci]`.
+- **E399 negative unchanged:** 502/1283 vs digit-only 509/1283; 33/40 paired p≈0.482788556844. No factual-claim precision, real-feed improvement or new data proven.
+- **Evidence:** `docs/E401_COMPENSATED_PAIRED_TAIL_20261030.md`; stacked draft on E400 PR #19. No merge, deployment or outreach. Next: prospective synthetic numerical sweep and complete Node validation.
+
+- **E401 follow-up cross-scale check (2026-10-30):** 12 frozen independent SciPy 1.17.0 references evaluated against the exact GitHub function body, 12/12 within tolerance (maximum absolute error 8.35e-13); 41-case Node mirror maximum error 8.47e-13. New repository regression's cross-scale test executed in an isolated V8 shim (1/1 pass; eight other tests skipped). Commits a9d6059 (test) and 5e2ecca (audit). **Full Node suite, pinned TSV and exact-head CI still unexecuted**; no new numerical failure found, no merge/outreach. See docs/E401_COMPENSATED_PAIRED_TAIL_20261030.md and draft PR #20.

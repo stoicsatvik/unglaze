@@ -70,3 +70,45 @@ test('E400: original E399 result remains unchanged and invalid counts fail close
   assert.throws(() => exactPairedSignP(-1, 3), /nonnegative/);
   assert.throws(() => exactPairedSignP(1.5, 3), /nonnegative/);
 });
+
+test('E401: million-discordance near-threshold p-value avoids cancellation drift', () => {
+  // Frozen independent SciPy 1.17.0 scipy.stats.binomtest(499020, 1000000, 0.5)
+  // two-sided p-value. E400 naive log accumulation yielded ~0.0501127328795,
+  // outside this 1e-11 absolute tolerance. This is synthetic, not LIAR data.
+  const reference = 0.05011273253278045;
+  const observed = exactPairedSignP(499020, 500980);
+  assert.ok(Math.abs(observed - reference) < 1e-11,
+    'large-cohort p-value cancellation: ' + observed);
+  assert.ok(Math.abs(exactPairedSignP(500980, 499020) - observed) < 1e-14);
+  assert.ok(Math.abs(exactPairedSignP(33, 40) - 0.4827885568440212) < 1e-12);
+});
+
+
+test('E401 cross-scale: frozen independent SciPy references stay numerically stable', () => {
+  // Pre-frozen synthetic count pairs, not observed LIAR data.
+  // References: scipy.stats.binomtest(k, n, 0.5).pvalue, SciPy 1.17.0.
+  // Covers no discordance, small n, the E399 cohort, 10k, 100k and 1m.
+  const references = [
+    [0, 0, 1],
+    [0, 73, 2.1175823681357508e-22],
+    [36, 37, 1],
+    [600, 683, 0.022025959905542215],
+    [606, 677, 0.050626899935708201],
+    [4902, 5098, 0.051170690768295037],
+    [4850, 5150, 0.0027879675177127751],
+    [49526, 50474, 0.0027471774437837723],
+    [49691, 50309, 0.051041597562937732],
+    [498500, 501500, 0.0027086553060593739],
+    [499020, 500980, 0.050112732532780452],
+    [500000, 500000, 1],
+  ];
+  for (const [a, b, reference] of references) {
+    const observed = exactPairedSignP(a, b);
+    const error = Math.abs(observed - reference);
+    const tolerance = reference < 1e-10 ? 1e-12 * reference : 1e-11;
+    assert.ok(error <= tolerance,
+      'independent cross-scale reference mismatch ' + a + '/' + b + ': ' + observed);
+    assert.ok(Math.abs(exactPairedSignP(b, a) - observed) <= 1e-14,
+      'discordance orientation changed result for ' + a + '/' + b);
+  }
+});

@@ -61,14 +61,24 @@ export function exactPairedSignP(aOnly, bOnly) {
   // The conditional binomial test is exact; its numerical tail evaluation
   // must not begin with 2**(-n), which underflows for n >= 1075.
   // Start at P(X=k) in log space, then sum the smaller terms by recurrence.
-  let logAtK = -n * Math.LN2;
+  // E401: ordinary accumulation loses low-order bits when a large
+  // -n*ln(2) cancels the log-binomial coefficient near a balanced split.
+  // Compensated summation preserves precision without changing the test.
+  let logAtK = -n * Math.LN2, logCompensation = 0;
   for (let i = 1; i <= k; i++) {
-    logAtK += Math.log(n - i + 1) - Math.log(i);
+    const increment = Math.log(n - i + 1) - Math.log(i);
+    const y = increment - logCompensation;
+    const next = logAtK + y;
+    logCompensation = (next - logAtK) - y;
+    logAtK = next;
   }
-  let relativeTail = 1, relativeTerm = 1;
+  let relativeTail = 1, relativeTerm = 1, tailCompensation = 0;
   for (let i = k; i > 0; i--) {
     relativeTerm *= i / (n - i + 1);
-    relativeTail += relativeTerm;
+    const y = relativeTerm - tailCompensation;
+    const next = relativeTail + y;
+    tailCompensation = (next - relativeTail) - y;
+    relativeTail = next;
   }
   return Math.min(1, 2 * Math.exp(logAtK) * relativeTail);
 }
