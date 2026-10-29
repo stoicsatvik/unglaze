@@ -19,3 +19,15 @@ Use compensated (Kahan-style) summation for the log-binomial coefficient and the
 ## Next gate
 
 Run the complete Node suite, then assess a pre-frozen sweep of synthetic counts across n and imbalance against independent high-precision references, including timing and any near-decision-threshold differences. Preserve all negative results.
+
+
+## Incremental independent cross-scale audit (same date)
+
+After the initial E401 report, a frozen 12-fixture sweep was executed against the **actual function body fetched from the E401 GitHub branch**, extracted into isolated JavaScript execution with an assertion shim. Its blob was cced96986cb03de0cd9ba193f9156eca58c4bb47. Reference p-values were calculated independently with SciPy 1.17.0 scipy.stats.binomtest (two-sided, p=0.5). The fixtures span n=0, 73, 1,283, 10,000, 100,000 and 1,000,000, with balanced, near-threshold and strongly imbalanced cases.
+
+- **12/12** matched the frozen references within the preselected 1e-11 absolute tolerance (or 1e-12 relative for the tiny n=73 tail). Largest absolute error in the isolated source execution: **8.35e-13**, on 499,020/500,980.
+- A separate local Node 22 mirror swept **41 synthetic cases** with maximum absolute error **8.47e-13**. The small difference between JS runtimes (~1e-14 on the million-pair fixture) is below the regression tolerance and is not a new correctness failure.
+- Added a 12-case, orientation-symmetry repository regression to tests/e399_liar_recall_audit.test.mjs. **That repository test file has not been executed as a whole**, and neither full CI nor the pinned TSV evaluation was run. This audit does not certify all input ranges, runtime performance, or real-world detector quality.
+- **Negative result:** no additional numerical counterexample violating the chosen tolerance was found in these selected fixtures. This is not proof of global accuracy. No changes were made to the claim-detection engine, LIAR result, or statistical decision threshold.
+
+Next: execute exact repository tests and evaluate larger pre-frozen count grids with independent arbitrary-precision references and runtime measurements before integration.
