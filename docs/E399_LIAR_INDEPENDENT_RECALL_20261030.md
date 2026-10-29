@@ -19,7 +19,7 @@ Score each test statement as one input post. Compare frozen Unglaze claims predi
 
 ## Executed independent-source result
 
-The pinned source text was read directly through the GitHub connector and evaluated against the frozen engine source in an isolated JavaScript runtime. The separate committed CLI and four synthetic unit tests were checked locally under Node 22; the CLI was **not run end-to-end on the full source TSV inside the local container**, where outbound access was unavailable. No GitHub Actions run was requested due to a previously reported free-minutes budget warning.
+The pinned source text was read directly through the GitHub connector and evaluated against the frozen engine source in an isolated JavaScript runtime. The separate committed CLI and five synthetic unit tests were checked locally under Node 22; the CLI was **not run end-to-end on the full source TSV inside the local container**, where outbound access was unavailable. No GitHub Actions run was requested due to a previously reported free-minutes budget warning.
 
 | Frozen rule | Hits / 1,283 | Recall | Wilson 95% |
 |---|---:|---:|---:|
@@ -44,7 +44,7 @@ This is a negative generalization result, not a recommendation to classify any p
 2. Run node --test tests/e399_liar_recall_audit.test.mjs.
 3. Run node research/e399_liar_recall_audit.mjs /tmp/e399-liar-test.tsv /tmp/e399-liar-receipt.json.
 
-The CLI fails closed on source Git blob mismatch, row count, malformed TSV width, duplicate IDs, invalid labels and empty statements. The JSON receipt contains aggregate counts only, no source statements.
+The CLI additionally verifies the frozen engine Git blob before scoring, and fails closed on source Git blob mismatch, row count, malformed TSV width, duplicate IDs, invalid labels and empty statements. The JSON receipt contains aggregate counts only, no source statements.
 
 ## Next decisive experiment
 
