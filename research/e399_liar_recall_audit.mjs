@@ -24,6 +24,9 @@ export function gitBlobSha1(raw) {
   const bytes = Buffer.isBuffer(raw) ? raw : Buffer.from(raw);
   return createHash('sha1').update(Buffer.from('blob ' + bytes.length + '\0')).update(bytes).digest('hex');
 }
+export function verifyFrozenEngine(bytes) {
+  assert.equal(gitBlobSha1(bytes), ENGINE_BLOB_SHA1, 'engine fingerprint changed');
+}
 export function parseTsv(raw, { pinned = false } = {}) {
   const bytes = Buffer.isBuffer(raw) ? raw : Buffer.from(raw);
   if (pinned) assert.equal(gitBlobSha1(bytes), SOURCE.git_blob_sha1, 'source fingerprint changed');
@@ -99,6 +102,7 @@ async function main() {
   const [input, output] = process.argv.slice(2);
   if (!input || !output) throw new Error('usage: node research/e399_liar_recall_audit.mjs PINNED_TEST.tsv RECEIPT.json');
   const rows = parseTsv(await readFile(input), { pinned: true });
+  verifyFrozenEngine(await readFile(new URL('../src/core/engine.js', import.meta.url)));
   await import('../src/core/engine.js');
   const analyze = globalThis.UnglazeCore?.analyze;
   assert.equal(typeof analyze, 'function', 'frozen engine unavailable');
