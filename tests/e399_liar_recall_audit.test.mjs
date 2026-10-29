@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { evaluate, parseTsv, gitBlobSha1, exactPairedSignP, wilson } from '../research/e399_liar_recall_audit.mjs';
+import { evaluate, parseTsv, gitBlobSha1, exactPairedSignP, wilson, verifyFrozenEngine } from '../research/e399_liar_recall_audit.mjs';
 
 const row = (id, label, text) => id + '.json\t' + label + '\t' + text + '\t' + Array(11).fill('x').join('\t');
 const fixture = [row(1,'true','There were 3 launches.'),row(2,'false','The committee approved it.'),
@@ -35,4 +35,8 @@ test('exact discordance and Wilson interval sanity', () => {
 test('blob hash binds bytes and does not redistribute source statements', () => {
   assert.equal(gitBlobSha1(Buffer.alloc(0)), 'e69de29bb2d1d6434b8b29ae775ad8c2e48c5391');
   assert.notEqual(gitBlobSha1(Buffer.from('x')), gitBlobSha1(Buffer.from('x\n')));
+});
+
+test('frozen engine fingerprint must be checked, not merely reported', () => {
+  assert.throws(() => verifyFrozenEngine(Buffer.from('different engine')), /engine fingerprint/);
 });
