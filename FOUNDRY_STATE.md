@@ -47,3 +47,9 @@ A forecast containing numeric details could previously appear as a factual obser
 **Branch:** research/e399-independent-liar-recall-20261030, stacked on E374 draft PR #17. No main merge, public deployment, external API payment or private data.
 
 **Next:** Obtain independently annotated social-feed factual/nonfactual text with negative examples and domain/time holdouts. Freeze baseline comparison, measure precision/recall and inspect errors without tuning on the test cohort.
+
+### E400 | 2026-10-30 | Paired-discordance tail underflow
+- **Reproduced negative integrity finding:** E399's exact conditional sign/McNemar tail implementation initialized at `2^-n`, underflowing to zero on 1,283 discordances. Synthetic 640/643 returned p=0 before correction, whereas an independent BigInt binomial oracle gives p≈0.955475096549396.
+- **Correction:** Log-space binomial probability at the observed smaller discordance count, followed by backward ratio summation; invalid counts fail closed. Isolated Node 22 reproduction/validation: 3/3 tests passed. Repository regressions added; full suite/CI not run.
+- **Original E399 unchanged:** 33 vs 40 discordances still yield p≈0.482788556844; 502/1283 vs 509/1283 claim-candidate recall does not support superiority over digit-only. Synthetic count fixtures are not new real-world observations.
+- **Evidence:** `docs/E400_PAIRED_DISCORDANCE_STABILITY_20261030.md`, `research/e399_liar_recall_audit.mjs`, `tests/e399_liar_recall_audit.test.mjs`. Stacked draft, no merge or outreach.
