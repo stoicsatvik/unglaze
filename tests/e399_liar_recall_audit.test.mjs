@@ -40,3 +40,33 @@ test('blob hash binds bytes and does not redistribute source statements', () => 
 test('frozen engine fingerprint must be checked, not merely reported', () => {
   assert.throws(() => verifyFrozenEngine(Buffer.from('different engine')), /engine fingerprint/);
 });
+
+function exactBigIntTwoSidedP(aOnly, bOnly) {
+  const n = aOnly + bOnly, k = Math.min(aOnly, bOnly);
+  let combination = 1n, tail = 1n;
+  for (let i = 1; i <= k; i++) {
+    combination = combination * BigInt(n - i + 1) / BigInt(i);
+    tail += combination;
+  }
+  const numerator = 2n * tail, denominator = 1n << BigInt(n);
+  return Math.min(1, Number(numerator * 10n ** 15n / denominator) / 1e15);
+}
+
+test('E400: exact paired-discordance tail must not underflow on a 1283-row cohort', () => {
+  // This independently uses integer binomial coefficients, not the
+  // production floating-point recurrence.
+  for (const [a, b] of [[640, 643], [641, 642], [600, 683]]) {
+    const expected = exactBigIntTwoSidedP(a, b);
+    const observed = exactPairedSignP(a, b);
+    assert.ok(Math.abs(observed - expected) < 1e-10,
+      'large-cohort p-value mismatch for ' + a + '/' + b + ': ' + observed);
+  }
+  assert.ok(exactPairedSignP(640, 643) > 0.95);
+  assert.ok(exactPairedSignP(600, 683) > 0.02);
+});
+
+test('E400: original E399 result remains unchanged and invalid counts fail closed', () => {
+  assert.ok(Math.abs(exactPairedSignP(33, 40) - 0.4827885568440212) < 1e-12);
+  assert.throws(() => exactPairedSignP(-1, 3), /nonnegative/);
+  assert.throws(() => exactPairedSignP(1.5, 3), /nonnegative/);
+});
