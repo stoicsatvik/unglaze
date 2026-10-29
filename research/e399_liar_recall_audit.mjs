@@ -52,11 +52,25 @@ export function wilson(k, n) {
   return [center - radius, center + radius];
 }
 export function exactPairedSignP(aOnly, bOnly) {
+  assert.ok(Number.isSafeInteger(aOnly) && aOnly >= 0 &&
+    Number.isSafeInteger(bOnly) && bOnly >= 0,
+    'discordance counts must be nonnegative safe integers');
   const n = aOnly + bOnly, k = Math.min(aOnly, bOnly);
+  assert.ok(Number.isSafeInteger(n), 'total discordance count exceeds safe integer range');
   if (!n) return 1;
-  let term = Math.pow(0.5, n), tail = term;
-  for (let i = 1; i <= k; i++) { term *= (n - i + 1) / i; tail += term; }
-  return Math.min(1, 2 * tail);
+  // The conditional binomial test is exact; its numerical tail evaluation
+  // must not begin with 2**(-n), which underflows for n >= 1075.
+  // Start at P(X=k) in log space, then sum the smaller terms by recurrence.
+  let logAtK = -n * Math.LN2;
+  for (let i = 1; i <= k; i++) {
+    logAtK += Math.log(n - i + 1) - Math.log(i);
+  }
+  let relativeTail = 1, relativeTerm = 1;
+  for (let i = k; i > 0; i--) {
+    relativeTerm *= i / (n - i + 1);
+    relativeTail += relativeTerm;
+  }
+  return Math.min(1, 2 * Math.exp(logAtK) * relativeTail);
 }
 export function evaluate(rows, predict) {
   assert.ok(Array.isArray(rows) && rows.length, 'nonempty source required');
