@@ -34,3 +34,16 @@ A forecast containing numeric details could previously appear as a factual obser
 **Claim:** Second-metric arithmetic and missing-baseline detection **SUPPORTED IN DETERMINISTIC FIXTURES**. General coordinated-language parsing, external truth verification, and real social-feed precision/recall remain **NOT YET PROVEN**. E335 independent ClaimBuster test remains a negative generalization result, unchanged by this fix.
 
 **Next:** Freeze the heuristic, obtain an independently annotated social-feed corpus, and compare claim-level precision/recall against simpler baselines before any product claim or deployment.
+
+
+## E399 — independent LIAR claim-candidate recall (30 October 2026)
+
+**External empirical negative result:** On the pinned LIAR/PolitiFact test cohort (1,283 unique fact-checked short statements), frozen E374 Unglaze recognized 502 (39.13%, Wilson 95% 36.49–41.83%), while digit-only recognized 509 (39.67%, 37.03–42.38%). Paired both=469, Unglaze-only=33, digit-only=40, neither=741; exact two-sided paired-discordance p=0.4827885568. The seven-hit difference does not support superiority over digit-only. All-positive recall=100% by construction; precision is undefined because no nonclaim negatives exist.
+
+**Provenance:** tfs4/liar_dataset test.tsv, source commit b6f55d759d525f7150637fcdbc2c517d049408b7, Git blob a53fa254e1aab00e9c4d2442248bd43ff103ad90. Frozen engine Git blob 383233ee0d3b51427a9f965283f7ea01dacd7bfc. Research-only source, no original statements committed. The CLI verifies the frozen engine Git blob before scoring. Direct source+engine evaluated in isolated JavaScript runtime; five synthetic audit tests passed locally on Node 22. Full local CLI on external TSV and GitHub Actions CI NOT RUN; no false claim of exact-head CI.
+
+**Claim:** Independent fact-check-selected claim-candidate recall MEASURED; superiority over digit-only NOT SUPPORTED; factual-assertion precision/recall on independently annotated real social feeds, truth verification and user benefit NOT YET PROVEN. LIAR truthfulness labels are NOT factual-claim-presence labels. E335 negative check-worthiness result remains unchanged.
+
+**Branch:** research/e399-independent-liar-recall-20261030, stacked on E374 draft PR #17. No main merge, public deployment, external API payment or private data.
+
+**Next:** Obtain independently annotated social-feed factual/nonfactual text with negative examples and domain/time holdouts. Freeze baseline comparison, measure precision/recall and inspect errors without tuning on the test cohort.
