@@ -70,3 +70,15 @@ test('E400: original E399 result remains unchanged and invalid counts fail close
   assert.throws(() => exactPairedSignP(-1, 3), /nonnegative/);
   assert.throws(() => exactPairedSignP(1.5, 3), /nonnegative/);
 });
+
+test('E401: million-discordance near-threshold p-value avoids cancellation drift', () => {
+  // Frozen independent SciPy 1.17.0 scipy.stats.binomtest(499020, 1000000, 0.5)
+  // two-sided p-value. E400 naive log accumulation yielded ~0.0501127328795,
+  // outside this 1e-11 absolute tolerance. This is synthetic, not LIAR data.
+  const reference = 0.05011273253278045;
+  const observed = exactPairedSignP(499020, 500980);
+  assert.ok(Math.abs(observed - reference) < 1e-11,
+    'large-cohort p-value cancellation: ' + observed);
+  assert.ok(Math.abs(exactPairedSignP(500980, 499020) - observed) < 1e-14);
+  assert.ok(Math.abs(exactPairedSignP(33, 40) - 0.4827885568440212) < 1e-12);
+});
