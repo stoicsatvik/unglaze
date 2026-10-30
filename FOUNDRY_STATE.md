@@ -61,3 +61,13 @@ A forecast containing numeric details could previously appear as a factual obser
 - **Evidence:** `docs/E401_COMPENSATED_PAIRED_TAIL_20261030.md`; stacked draft on E400 PR #19. No merge, deployment or outreach. Next: prospective synthetic numerical sweep and complete Node validation.
 
 - **E401 follow-up cross-scale check (2026-10-30):** 12 frozen independent SciPy 1.17.0 references evaluated against the exact GitHub function body, 12/12 within tolerance (maximum absolute error 8.35e-13); 41-case Node mirror maximum error 8.47e-13. New repository regression's cross-scale test executed in an isolated V8 shim (1/1 pass; eight other tests skipped). Commits a9d6059 (test) and 5e2ecca (audit). **Full Node suite, pinned TSV and exact-head CI still unexecuted**; no new numerical failure found, no merge/outreach. See docs/E401_COMPENSATED_PAIRED_TAIL_20261030.md and draft PR #20.
+
+
+## E417 — calendar May / modal may falsification (2026-10-30)
+
+- Branch: `research/e417-calendar-may-modal-falsification-20261030`, stacked on E401 draft PR #20.
+- Original E401 engine interpreted yearless retrospective `In May, revenue reached $1.2M.` and `May sales rose 20%.` as modal predictions, suppressing self-reported factual claim candidates. A blanket month replacement would instead suppress legitimate `may` forecasts.
+- Correction: recognize prepositional calendar May, month/day and capitalized May + past-tense metric reports while retaining distinct modal uses. No verification or confidence invented.
+- Exact fetched source + committed fixture evaluated in isolated V8: **15/15 deterministic cases passed**, with unchanged self-reported/not-checked labels and empty evidenceLinks. Node runner, full repository suite, external corpus and GitHub Actions **NOT RUN**; included Actions minutes were reported exhausted, so no paid CI is authorized.
+- Claim: specific heuristic correction SUPPORTED IN ISOLATED SYNTHETIC FIXTURES; independent factual-claim precision/recall, temporal-language generalization, truth verification and user benefit NOT YET PROVEN.
+- Next: independent, permitted social-feed positive/negative corpus, held-out temporal subtypes and digit-only comparison; retain E399's negative result. See `research/E417_CALENDAR_MAY_MODAL_FALSIFICATION_20261030.md`.
