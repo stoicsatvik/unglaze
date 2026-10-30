@@ -211,14 +211,16 @@
     const normalized = normalizeWhitespace(text);
     const sentences = splitSentences(normalized);
     const promotionalLanguage = findGlaze(normalized);
-    const opinions = sentences.filter(isOpinion);
-    const predictions = sentences.filter(isPrediction);
-    const factualClaims = sentences.filter(looksFactual);
-    // A sentence surviving the opinion/forecast filters is not necessarily
-    // a factual assertion. Reuse the same conservative candidate predicate
-    // as factualClaims; keep self-reported/unverified labels unchanged.
-    const claims = sentences
-      .filter(looksFactual)
+    // Separate independently asserted contrastive/semicolon clauses before
+    // applying epistemic filters. A forecast in one clause must not erase an
+    // observed, self-reported metric in another clause of the same sentence.
+    // Preserve unsplittable sentences conservatively rather than guessing.
+    const claimClauses = sentences.flatMap(splitClaimClauses);
+    const opinions = claimClauses.filter(isOpinion);
+    const predictions = claimClauses.filter(isPrediction);
+    const factualClaims = claimClauses.filter(looksFactual);
+    // The classifier emits candidates only; it never verifies their truth.
+    const claims = factualClaims
       .map((sentence) => ({
         text: stripGlaze(sentence),
         status: "self_reported",
