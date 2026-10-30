@@ -78,12 +78,20 @@
 
   const isOpinion = (sentence) => opinionPatterns.some((pattern) => pattern.test(sentence));
   const isPrediction = (sentence) => {
-    // A dated "May" is a calendar month, not a modal forecast.
-    const withoutMayDates = sentence.replace(
-      /\bmay\s+(?:\d{1,2}(?:,\s*)?)?\d{4}\b|\b\d{1,2}\s+may\s+\d{4}\b/gi,
-      ""
-    );
-    return predictionPatterns.some((pattern) => pattern.test(withoutMayDates));
+    // Calendar May is not the modal "may"; preserve any second, genuinely modal "may".
+    let withoutCalendarMay = sentence
+      .replace(/\bmay\s+(?:\d{1,2}(?:,\s*)?)?\d{4}\b|\b\d{1,2}\s+may\s+\d{4}\b/gi, "")
+      .replace(/\b(?:in|during|since|throughout|through|by|for|on)\s+may(?:\s+\d{1,2}(?:st|nd|rd|th)?)?\b/gi, "")
+      .replace(/\bmay\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s+\d{4})?\b/gi, "");
+    // A capitalized month modifying a metric in a past-tense report is not a forecast.
+    // Require past-tense evidence so "May sales rise?" remains a modal question.
+    if (/\b(?:rose|grew|fell|declined|reached|shipped|joined|generated|increased|decreased|reported|hit|was|were)\b/i.test(sentence)) {
+      withoutCalendarMay = withoutCalendarMay.replace(
+        /\bMay(?=\s+(?:revenue|sales|users?|customers?|funding|orders?|shipments?|profits?|income|costs?|earnings|registrations?|metrics?|results?|figures?|data)\b)/g,
+        ""
+      );
+    }
+    return predictionPatterns.some((pattern) => pattern.test(withoutCalendarMay));
   };
 
   const looksFactual = (sentence) => {
