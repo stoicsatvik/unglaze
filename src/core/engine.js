@@ -160,6 +160,9 @@
   // structural heuristic, not a complete natural-language parser.
   const splitClaimClauses = (sentence) =>
     sentence.split(/;\s*|,\s*(?:but|while|whereas|and)\s+|\s+(?:and|but|while|whereas)\s+(?=(?:revenue|costs?|users?|customers?|profits?|sales|expenses?|funding|headcount)\s+(?:grew|rose|fell|declined|decreased|dropped|increased|reached|changed)\b)/i)
+      // E451: separate unpunctuated modal/opinion continuations without
+      // promoting their forecast content into factual evidence.
+      .flatMap((part) => part.split(/\s+(?:and|but|while|whereas)\s+(?=(?:(?:i|we|they|he|she|it|costs?|revenue|sales|users?|customers?|profits?|the\s+[a-z]+)\s+)?(?:will|may|might|could|think|believe|expect)\b)/i))
       .map(normalizeWhitespace).filter(Boolean);
 
   const inferMissingContext = (text) => {
