@@ -1,0 +1,51 @@
+{
+  "experiment": "E451 LIAR pinned independent test-cohort transfer",
+  "date": "2026-10-31",
+  "source": {
+    "url": "https://raw.githubusercontent.com/tfs4/liar_dataset/b6f55d759d525f7150637fcdbc2c517d049408b7/test.tsv",
+    "upstream_commit": "b6f55d759d525f7150637fcdbc2c517d049408b7",
+    "previously_documented_git_blob": "a53fa254e1aab00e9c4d2442248bd43ff103ad90",
+    "rows": 1283,
+    "columns": 14,
+    "unique_ids": 1283,
+    "statement_column_zero_indexed": 2,
+    "selection": "all source rows preselected for fact checking; no independently annotated nonclaim negatives"
+  },
+  "engine": {
+    "baseline_branch": "research/e435-mixed-epistemic-clause-recovery-20261031",
+    "baseline_blob": "3955161169446b219ccda8a12af878b6d4f8221a",
+    "e451_branch": "research/e451-unpunctuated-epistemic-clause-20261031",
+    "e451_blob": "387915c15124ceb5e87ef5d77da17ab006f5ac98"
+  },
+  "results": {
+    "e435_hits": 506,
+    "e451_hits": 507,
+    "digit_only_hits": 509,
+    "total": 1283,
+    "e435_e451_paired": {
+      "both": 506,
+      "e435_only": 0,
+      "e451_only": 1,
+      "neither": 776,
+      "exact_two_sided_p": 1
+    },
+    "e451_digit_paired": {
+      "both": 473,
+      "e451_only": 34,
+      "digit_only_only": 36,
+      "neither": 740,
+      "exact_two_sided_p": 0.9049745264594622
+    },
+    "e435_wilson95": [
+      0.3679990300594462,
+      0.4214078402189159
+    ],
+    "e451_wilson95": [
+      0.3687669872018012,
+      0.4221940759158351
+    ],
+    "nonverification_violations": 0
+  },
+  "interpretation": "One additional LIAR candidate over E435; no evidence of superiority to digit-only or broad social-feed generalization. Precision cannot be computed from a positive-only fact-checked cohort.",
+  "execution": "GitHub connector read of immutable public TSV plus both exact GitHub engine source blobs; isolated JavaScript V8 execution; aggregate-only receipt. Node CLI/full npm suite/CI not run."
+}
