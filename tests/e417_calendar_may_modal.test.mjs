@@ -17,8 +17,8 @@ const cases = [
   ["Revenue may reach $1.2M.", 0, 1],
   ["In May, sales may rise 20%.", 0, 1],
   ["May sales rise next year?", 0, 1],
-  ["May sales rose 20% but may decline later.", 0, 1],
-  ["We reached 12,000 users in May and may double next year.", 0, 1]
+  ["May sales rose 20% but may decline later.", 1, 1],
+  ["We reached 12,000 users in May and may double next year.", 1, 1]
 ];
 
 test("E417: calendar May and modal may remain distinct without inventing verification", () => {
