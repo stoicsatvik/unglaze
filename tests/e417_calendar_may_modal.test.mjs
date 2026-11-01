@@ -28,7 +28,7 @@ test("E417: calendar May and modal may remain distinct without inventing verific
     assert.equal(result.predictions.length, predictions, text + ": forecast");
     assert.equal(result.claims.length, factual, text + ": candidate claims");
     for (const claim of result.claims) {
-      assert.equal(claim.status, "self_reported");
+      assert.equal(claim.status, "unverified");
       assert.equal(claim.verification, "not_checked");
       assert.equal(Object.hasOwn(claim, "confidence"), false);
     }
