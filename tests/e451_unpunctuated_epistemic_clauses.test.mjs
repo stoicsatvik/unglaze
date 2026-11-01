@@ -30,7 +30,7 @@ test("E451: independent modal clauses preserve candidate observations without ve
     assert.deepEqual(result.evidenceLinks, [], text + " no invented verification");
     assert.deepEqual(result.sourceLinks, ["https://example.com/lead"]);
     for (const claim of result.claims) {
-      assert.equal(claim.status, "self_reported");
+      assert.equal(claim.status, "unverified");
       assert.equal(claim.verification, "not_checked");
       assert.equal(Object.hasOwn(claim, "confidence"), false);
     }

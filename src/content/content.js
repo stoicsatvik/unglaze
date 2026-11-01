@@ -92,7 +92,7 @@
     const caveat = el(
       "p",
       "unglaze-caveat",
-      "Local analysis. Claims remain self-reported unless a source independently verifies them."
+      "Local heuristic analysis. Possible claims are unverified; wording does not authenticate who said them."
     );
     card.append(caveat);
 
@@ -109,7 +109,15 @@
       return;
     }
 
-    addList(card, "Concrete claims", result.factualClaims, "No concrete claim detected.");
+    const claimLines = result.claims.map(({ text, speakerContext }) => {
+      const context = speakerContext === "quoted_or_attributed"
+        ? "Quoted/attributed wording"
+        : speakerContext === "first_person_text"
+          ? "First-person wording (speaker unverified)"
+          : "Speaker unspecified";
+      return `${context}: ${text}`;
+    });
+    addList(card, "Possible claims (unverified)", claimLines, "No possible claim detected.");
     addLinks(card, meta.links);
     addList(card, "Missing context", result.missingContext, "No obvious context gap detected.");
 

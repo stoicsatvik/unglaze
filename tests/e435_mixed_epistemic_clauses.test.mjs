@@ -25,7 +25,7 @@ test("E435: independent clauses preserve factual candidates without promoting fo
     assert.equal(a.opinions.length, opinions, text + " opinion count");
     assert.deepEqual(a.evidenceLinks, [], text + " no invented verification");
     for (const claim of a.claims) {
-      assert.equal(claim.status, "self_reported");
+      assert.equal(claim.status, "unverified");
       assert.equal(claim.verification, "not_checked");
       assert.equal(Object.hasOwn(claim, "confidence"), false);
     }

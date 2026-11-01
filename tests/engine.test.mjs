@@ -185,7 +185,7 @@ for (const url of [
   assert.deepEqual(audit.sourceLinks, [url]);
   assert.deepEqual(audit.evidenceLinks, []);
   assert.equal(audit.claims.length, 1);
-  assert.equal(audit.claims[0].status, "self_reported");
+  assert.equal(audit.claims[0].status, "unverified");
   assert.equal(audit.claims[0].verification, "not_checked");
   assert.equal(Object.hasOwn(audit.claims[0], "confidence"), false);
 }
@@ -282,3 +282,36 @@ for (const fixture of e374ContrastFixtures) {
     fixture.missing, fixture.text + ": independent contrast baseline"
   );
 }
+
+
+// E474: the author of a social post is not automatically the speaker of
+// every embedded statement. These are hand-authored synthetic attribution
+// fixtures, NOT empirical social-feed labels or truth verification.
+const e474AttributionFixtures = [
+  ["We reached 100 paying customers.", "first_person_text"],
+  ["I raised $1M in seed funding.", "first_person_text"],
+  ["We launched in May 2026.", "first_person_text"],
+  ["We sold 2,000 units.", "first_person_text"],
+  ["The company reached 100 customers.", "unspecified"],
+  ["Revenue reached $2M in 2025.", "unspecified"],
+  ["Acme launched in April 2026.", "unspecified"],
+  ["The company hired 30 employees.", "unspecified"],
+  ["According to the annual report, revenue reached $2M in 2025.", "quoted_or_attributed"],
+  ["The CEO said revenue reached $2M in 2025.", "quoted_or_attributed"],
+  ["The CEO claimed that revenue reached $2M in 2025.", "quoted_or_attributed"],
+  ['"We reached 100 paying customers."', "quoted_or_attributed"],
+  ["“We reached 100 paying customers.”", "quoted_or_attributed"],
+  ["Revenue reached $2M in 2025, according to the annual report.", "quoted_or_attributed"]
+];
+for (const [text, speakerContext] of e474AttributionFixtures) {
+  const { claims } = analyze({ text, links: ["https://example.org/unverified"] });
+  assert.equal(claims.length, 1, text + ": one candidate");
+  assert.equal(claims[0].status, "unverified", text + ": no author inference");
+  assert.equal(claims[0].speakerContext, speakerContext, text + ": speaker context");
+  assert.equal(claims[0].verification, "not_checked", text + ": no fabricated verification");
+  assert.equal(Object.hasOwn(claims[0], "confidence"), false, text + ": no calibrated probability");
+}
+for (const text of ["We will reach 100 customers.", "I think we reached 100 customers."]) {
+  assert.equal(analyze({ text }).claims.length, 0, text + ": forecast/opinion remains excluded");
+}
+console.log("E474 synthetic attribution controls passed.");
