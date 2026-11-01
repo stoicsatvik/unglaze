@@ -32,3 +32,11 @@ Does the extension imply that every extracted claim belongs to the feed-post aut
 Freeze a legally usable, independently annotated real-feed positive/negative and quoted/direct corpus. Evaluate claim detection and speaker attribution with source-preserving splits, report false attribution and precision/recall against a no-attribution baseline, inspect error clusters, and reject the heuristic if its false-speaker rate is unacceptable.
 
 No private feed scraping, external retrieval, publication, deployment, merge, outreach or spending occurred.
+
+## Exact-head CI and inherited-suite migration
+
+- Draft PR: https://github.com/stoicsatvik/unglaze/pull/24 (stacked on E451 #23).
+- Initial pull-request Actions #41293565889 **FAILED** with 17/20 passing because three inherited tests expected the previous, now rejected `self_reported` status. E474's new synthetic attribution controls passed in that same run.
+- Migrated only those three legacy status expectations, preserving all their forecast, modal and clause behavior assertions. No weakening of numeric or epistemic controls.
+- Corrected exact-code-head Actions #41293661085 **SUCCESS**; the `npm test` step passed on commit `689d451a0eeed9f599a2e46e10d20c72a9e99ee4`.
+- This verifies the inherited Node test suite, **not** real-feed speaker attribution or browser integration. A documentation-only follow-up commit requires its own exact-head CI check.
