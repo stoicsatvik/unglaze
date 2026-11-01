@@ -103,6 +103,23 @@
     );
   };
 
+  // E474: text alone does not authenticate the post author as the speaker.
+  // These are conservative lexical cues, NOT identity resolution or fact checks.
+  const inferSpeakerContext = (sentence) => {
+    const clause = normalizeWhitespace(sentence);
+    if (/^["“'‘]/.test(clause) ||
+        /\b(?:according to|as reported by|as stated by)\b/i.test(clause) ||
+        /\b(?:quote|quotation)\s*:/i.test(clause)) {
+      return "quoted_or_attributed";
+    }
+    if (/^(?:i|we)\b/i.test(clause)) return "first_person_text";
+    if (/\b(?:said|claimed|stated|reported|wrote|posted)\s+(?:that\s+)?(?:we|i|revenue|sales|users?|customers?|the company|profits?|funding)\b/i.test(clause) ||
+        /\b(?:said|claimed|stated|reported|wrote|posted)\s*[:,"“'‘]/i.test(clause)) {
+      return "quoted_or_attributed";
+    }
+    return "unspecified";
+  };
+
   const unique = (items) => [...new Set(items.filter(Boolean))];
 
   // E253: a textual "from/to" is not automatically evidence for a
@@ -226,7 +243,8 @@
     const claims = factualClaims
       .map((sentence) => ({
         text: stripGlaze(sentence),
-        status: "self_reported",
+        status: "unverified",
+        speakerContext: inferSpeakerContext(sentence),
         verification: "not_checked"
       }))
       .filter((claim) => claim.text.length > 3)
