@@ -77,9 +77,18 @@
   };
 
   const isOpinion = (sentence) => opinionPatterns.some((pattern) => pattern.test(sentence));
+  // E494: "Will" is not always a future auxiliary. Only suppress a
+  // capitalized first-name use before an unmistakable past-tense predicate.
+  // This is lexical disambiguation, not person identification.
+  const disambiguateNominalWill = (sentence) => sentence
+    .replace(/\bWill\s+([A-Z][a-z]+)\s+(?=(?:(?:has|had)\s+)?(?:sold|joined|launched|raised|signed|won|published|reported|founded|reached|hired|opened|closed|grew|shipped|built|acquired|said)\b)/g,
+      (_, surname) => "Person " + surname + " ")
+    .replace(/\b(the|a|his|her|their)\s+will(?=\s+(?:was|is|has|had|were)\b)/gi,
+      (_, determiner) => determiner + " testament");
+
   const isPrediction = (sentence) => {
     // Calendar May is not the modal "may"; preserve any second, genuinely modal "may".
-    let withoutCalendarMay = sentence
+    let withoutCalendarMay = disambiguateNominalWill(sentence)
       .replace(/\bmay\s+(?:\d{1,2}(?:,\s*)?)?\d{4}\b|\b\d{1,2}\s+may\s+\d{4}\b/gi, "")
       .replace(/\b(?:in|during|since|throughout|through|by|for|on)\s+may(?:\s+\d{1,2}(?:st|nd|rd|th)?)?\b/gi, "")
       .replace(/\bmay\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s+\d{4})?\b/gi, "");
